@@ -1,14 +1,71 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <title>Propostas</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Propostas</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-
-
 <body>
+  <header>
+    <div>
+      <img src="assets/logo-eficaz-branco-1024x339.png" alt="Logo Eficaz" class="logo">
+      <div class="titulo">
+        <h1>Gerenciador de Proposta</h1>
+        <h3>CRM</h3>
+      </div>
+      <div class="user-container">
+        <img src="assets/icone-de-perfil-de-avatar-padrao-imagem-de-usuario-de-midia-social-icone-de-avatar-cinza-silhueta-de-perfil-em-branco-ilustracao-vetorial_561158-3407.jpg" alt="Usuário" class="user">
+      </div>
+    </div>
+  </header>
+
+  <section class="propostas-tabela">
+    <h2>Propostas dos Clientes</h2>
+
+    <div class="propostas-filtros">
+      <select id="filtroCliente">
+        <option value="">Filtrar por Cliente</option>
+      </select>
+
+      <select id="filtroTemplate">
+        <option value="">Filtrar por Template</option>
+      </select>
+
+      <select id="filtroStatus">
+        <option value="">Filtrar por Status</option>
+        <option value="Pendente">Pendente</option>
+        <option value="Aprovada">Aprovada</option>
+        <option value="Rejeitada">Rejeitada</option>
+      </select>
+    </div>
+
+    <div class="propostas-actions">
+      <div>
+        <button id="btnExportarPDF" class="btn-exportar">Exportar PDF (visíveis)</button>
+        <button id="btnCriarProposta" class="btn-criar">Criar / Exportar Proposta</button>
+      </div>
+    </div>
+
+    <div class="propostas-table">
+      <table id="propostasTable">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Template</th>
+            <th>Data</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- propostas serão adicionadas dinamicamente pelo JS -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="script.js"></script>
 </body>
-<script src="script.js"></script>
 </html>

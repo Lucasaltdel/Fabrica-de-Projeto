@@ -755,3 +755,219 @@ header .user {
     transform: scale(1.05);
 }
 
+   /* PROPOSTAS */
+.propostas-tabela {
+  width: 90%;
+  max-width: 1200px;
+  margin: 100px auto 50px auto;
+  background-color: #fff;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+  color: #000;
+}
+
+.propostas-tabela h2 {
+  text-align: center;
+  font-size: 1.8rem;
+  color: #3115cc;
+  margin-bottom: 25px;
+}
+
+.propostas-filtros {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.propostas-filtros select {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.propostas-filtros select:focus {
+  border-color: #3115cc;
+  box-shadow: 0 0 8px rgba(49,21,204,0.4);
+}
+
+.propostas-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.btn-exportar {
+  padding: 10px 20px;
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.btn-exportar:hover {
+  background: #0056b3;
+  transform: scale(1.05);
+}
+
+.propostas-table {
+  overflow-x: auto;
+}
+
+.propostas-table table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+.propostas-table th,
+.propostas-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+.propostas-table th {
+  background-color: #f0f0f0;
+  color: #3115cc;
+  font-weight: bold;
+}
+
+.propostas-table tr:nth-child(even) {
+  background-color: rgba(49,21,204,0.05);
+}
+
+.propostas-table tr:hover {
+  background-color: rgba(49,21,204,0.15);
+}
+
+.btn-visualizar,
+.btn-editar,
+.btn-excluir {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  font-weight: bold;
+  transition: transform 0.2s ease;
+}
+
+.btn-visualizar { background: #17a2b8; }
+.btn-editar { background: #ffc107; color: #000; }
+.btn-excluir { background: #dc3545; }
+
+.btn-visualizar:hover,
+.btn-editar:hover,
+.btn-excluir:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+
+/* ===== MODAL DE CRIAÇÃO DE PROPOSTA ===== */
+.modal-processos {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.65);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.modal-processos.active {
+  display: flex;
+}
+
+.modal-content-processos {
+  background: #fff;
+  padding: 30px 40px;
+  border-radius: 16px;
+  max-width: 550px;
+  width: 90%;
+  box-shadow: 0 6px 25px rgba(0,0,0,0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-content-processos h3 {
+  text-align: center;
+  color: #3115cc;
+  font-size: 1.6rem;
+  margin-bottom: 10px;
+}
+
+.modal-content-processos input,
+.modal-content-processos select,
+.modal-content-processos textarea {
+  width: 90%;
+  padding: 10px 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.modal-content-processos input:focus,
+.modal-content-processos select:focus,
+.modal-content-processos textarea:focus {
+  border-color: #3115cc;
+  box-shadow: 0 0 8px rgba(49,21,204,0.4);
+  outline: none;
+}
+
+.modal-content-processos textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* ===== BOTÕES DO MODAL ===== */
+.modal-buttons {
+  display: flex;
+  justify-content: space-between; 
+  align-items: center;          
+  margin-top: 25px;
+  gap: 15px;
+}
+
+.modal-buttons button {
+  flex: 1;                         
+  padding: 16px 0;
+  border: none;
+  border-radius: 12px;             
+  font-size: 1rem;
+}
+
+.btn-exportar-modal { background: #007bff; color: #fff; }
+.btn-salvar-modal   { background: #3115cc; color: #fff; }
+.btn-cancelar-modal { background: #dc3545; color: #fff; }
+
+.btn-exportar-modal:hover { background: #005dc0; }
+.btn-salvar-modal:hover   { background: #25129e; }
+.btn-cancelar-modal:hover { background: #b92d3b; }
+
+@media (max-width: 600px) {
+  .modal-content-processos {
+    padding: 25px;
+  }
+  .modal-buttons {
+    flex-direction: column;
+  }
+  .modal-buttons button {
+    width: 100%;
+  }
+}
