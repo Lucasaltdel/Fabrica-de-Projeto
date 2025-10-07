@@ -1,0 +1,10 @@
+.background-container {
+  position: fixed; /* ou absolute, dependendo do contexto */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* Para evitar rolagem se o gradiente for muito grande */
+  pointer-events: none; /* Permite que o mouse passe por ele para atingir outros elementos */
+  background-repeat: no-repeat; /* Impede repetições */
+}
