@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clientes</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div>
+            <img src="assets/logo-eficaz-branco-1024x339.png" alt="Logo Eficaz" class="logo">
+
+            <div class="titulo">
+                <h1>Gerenciador de Proposta</h1>
+                <h3>CRM</h3>
+            </div>
+            <div class="user-container">
+                <img src="assets/icone-de-perfil-de-avatar-padrao-imagem-de-usuario-de-midia-social-icone-de-avatar-cinza-silhueta-de-perfil-em-branco-ilustracao-vetorial_561158-3407.jpg" alt="Usuário" class="user">
+            </div>
+        </div>
+    </header>     
+
+    <nav class="menu">
+        <ul>
+            <li><a href="Formulario.html">Forms</a></li>
+            <li><a href="Templates.html">Templates</a></li>
+            <li><a href="Propostas.html">+ Propostas</a></li>
+            <li><a href="Analise.html">Análise</a></li>
+            <li><a href="Clientes.html">Clientes</a></li>
+        </ul>
+    </nav>
+    
+    <section class="clientes-content">
+        <h2>Lista de Clientes e Propostas Relacionadas</h2>
+        
+        <div class="clientes-filtros">
+            <input type="text" id="filtroNome" placeholder="Buscar por Nome do Cliente">
+            <input type="text" id="filtroEmail" placeholder="Buscar por E-mail">
+            <input type="text" id="filtroTelefone" placeholder="Buscar por Telefone">
+
+            <select id="filtroPlano" class="filtro-select">
+                <option value="">Todos os Planos</option>
+                <option value="Básico">Básico</option>
+                <option value="Premium">Premium</option>
+                <option value="Empresarial">Empresarial</option>
+            </select>
+            
+            <select id="filtroTipoTemplate" class="filtro-select">
+                <option value="">Todos os Templates</option>
+                <option value="Comercial">Comercial</option>
+                <option value="Financeiro">Financeiro</option>
+                <option value="Jurídico">Jurídico</option>
+            </select>
+        </div>
+
+        <div class="clientes-table-container">
+            <table id="clientesTable">
+                <thead>
+                    <tr>
+                        <th>Nome do Cliente</th>
+                        <th>E-mail</th>
+                        <th>Telefone</th>
+                        <th>Plano</th>
+                        <th>Template</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="clientesTableBody">
+                    </tbody>
+            </table>
+        </div>
+        
+        <div class="pagination-controls">
+            <button id="prevPage" disabled>Anterior</button>
+            <div id="paginationContainer">
+                </div>
+            <button id="nextPage" disabled>Próxima</button>
+        </div>
+        
+    </section>
+    <script src="script.js"></script>
+</body>
+</html>

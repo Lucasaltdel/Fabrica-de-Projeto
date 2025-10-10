@@ -1142,3 +1142,155 @@ header .user {
     }
   }
   
+  /* --- CLIENTES --- */
+
+.clientes-content {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.clientes-content h2 {
+    color: #0a090a;
+    border-bottom: 2px solid #17171b;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+}
+
+/* Tabela */
+.clientes-table-container {
+    overflow-x: auto;
+    margin-bottom: 20px;
+}
+
+#clientesTable {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #1a1a1a; /* Fundo mais escuro */
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+}
+
+#clientesTable th, #clientesTable td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #333; /* Linhas divisórias escuras */
+}
+
+#clientesTable thead {
+    background-color: #222;
+    color: #3115cc;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+}
+
+/* EFEITO HOVER CIANO */
+#clientesTable tbody tr:hover {
+    background-color: #00bcd433; /* Ciano claro com transparência */
+    cursor: pointer;
+}
+
+/* PAGINAÇÃO */
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.pagination-controls button,
+.pagination-controls .page-number {
+    padding: 8px 15px;
+    border: 1px solid #3115cc;
+    background-color: #1a1a1a;
+    color: #fff;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.pagination-controls button:hover:not(:disabled),
+.pagination-controls .page-number:hover:not(.active) {
+    background-color: #3115cc;
+}
+
+.pagination-controls button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#paginationContainer {
+    display: flex;
+    gap: 5px;
+}
+
+.page-number.active {
+    background-color: #00bcd4; /* Ciano para página ativa */
+    color: #101011;
+    font-weight: bold;
+    border-color: #00bcd4;
+}
+
+/* --- ESTILOS DE FILTRO CLIENTES --- */
+.clientes-filtros {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+    flex-wrap: wrap; /* Garante que quebre a linha em telas pequenas */
+}
+
+.clientes-filtros input,
+.clientes-filtros select {
+    padding: 10px 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: #fff;
+    color: #333;
+    flex-grow: 1; /* Permite que os campos cresçam */
+    max-width: 300px; /* Limita o tamanho em telas grandes */
+}
+
+.clientes-filtros input:focus,
+.clientes-filtros select:focus {
+    border-color: #3115cc;
+    box-shadow: 0 0 8px rgba(49,21,204,0.4);
+    outline: none;
+}
+
+/* Garante que o input de busca geral seja maior */
+#filtroGeral {
+    flex-grow: 2; 
+    min-width: 250px;
+}
+
+/* --- ESTILOS DE FILTRO CLIENTES --- */
+.clientes-filtros {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+    flex-wrap: wrap; 
+}
+
+.clientes-filtros input,
+.clientes-filtros select {
+    padding: 10px 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: #fff;
+    color: #333;
+    flex-grow: 1; /* Permite que os campos cresçam para preencher o espaço */
+    /* Removemos o max-width para melhor distribuição entre os 5 campos */
+}
+
+.clientes-filtros input:focus,
+.clientes-filtros select:focus {
+    border-color: #3115cc;
+    box-shadow: 0 0 8px rgba(49,21,204,0.4);
+    outline: none;
+}
