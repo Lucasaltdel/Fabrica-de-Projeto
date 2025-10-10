@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Análise</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div>
+      <img src="assets/logo-eficaz-branco-1024x339.png" alt="Logo Eficaz" class="logo">
+      <div class="titulo">
+        <h1>Gerenciador de proposta</h1>
+        <h3>CRM</h3>
+      </div>
+      <div class="user-container">
+        <img src="assets/icone-de-perfil-de-avatar-padrao-imagem-de-usuario-de-midia-social-icone-de-avatar-cinza-silhueta-de-perfil-em-branco-ilustracao-vetorial_561158-3407.jpg" alt="Usuário" class="user">
+      </div>
+    </div>
+  </header>
+
+  <nav class="menu">
+    <ul>
+      <li><a href="Formulario.html">Forms</a></li>
+      <li><a href="Templates.html">Templates</a></li>
+      <li><a href="Propostas.html">+ Propostas</a></li>
+      <li><a href="Analise.html" class="active">Análise</a></li>
+      <li><a href="#">Clientes</a></li>
+    </ul>
+  </nav>
+
+  <main class="analise-container">
+    <section class="analise-header">
+      <h2>Visão Geral</h2>
+      <button id="exportarExcel" class="btn-exportar">Exportar Excel</button>
+    </section>
+
+    <!-- Cards -->
+    <section class="analise-cards">
+      <div class="analise-card azul">
+        <h3>Aprovados</h3>
+        <p id="aprovados">--</p>
+      </div>
+      <div class="analise-card amarelo">
+        <h3>Pendentes</h3>
+        <p id="pendentes">--</p>
+      </div>
+      <div class="analise-card vermelho">
+        <h3>Rejeitados</h3>
+        <p id="rejeitados">--</p>
+      </div>
+      <div class="analise-card verde">
+        <h3>Usuários</h3>
+        <p id="usuariosCadastrados">--</p>
+      </div>
+    </section>
+
+    <!-- Gráficos -->
+    <section class="graficos-analise">
+      <div class="grafico-card">
+        <h3>Status</h3>
+        <canvas id="graficoStatus"></canvas>
+      </div>
+      <div class="grafico-card">
+        <h3>Usuários</h3>
+        <canvas id="graficoUsuarios"></canvas>
+      </div>
+    </section>
+
+    <!-- Tabela -->
+    <section class="analise-tabela">
+      <h2>Relatório</h2>
+      <div class="propostas-filtros">
+        <select id="filtroCliente">
+          <option value="">Clientes</option>
+        </select>
+        <select id="filtroTemplate">
+          <option value="">Templates</option>
+        </select>
+        <select id="filtroStatus">
+          <option value="">Status</option>
+        </select>
+      </div>
+
+      <div class="propostas-table">
+        <table id="tabelaAnalise">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Data</th>
+              <th>Status</th>
+              <th>Valor</th>
+              <th>Responsável</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- dados dinâmicos -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

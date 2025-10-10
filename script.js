@@ -1,442 +1,293 @@
+// Verifica o contexto da página
+const isPropostasPage = !!document.getElementById('propostasTable');
+const isAnalisePage = !!document.getElementById('tabelaAnalise'); 
+
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 🔵 Animação do background
+    // ---------------------------------------------------
+    // 🔵 VARIÁVEIS DE ELEMENTOS
+    // ---------------------------------------------------
+    const filtroCliente = document.getElementById('filtroCliente');
+    const filtroTemplate = document.getElementById('filtroTemplate');
+    const filtroStatus = document.getElementById('filtroStatus');
+    const tabelaPrincipal = document.getElementById('propostasTable') || document.getElementById('tabelaAnalise');
+    
+    // O botão btnExportarPDF não terá mais função ativa, mas o ID é mantido.
+    const btnExportarPDF = document.getElementById('btnExportarPDF'); 
+    const btnExportarExcel = document.getElementById('exportarExcel');
+    const btnCriarProposta = document.getElementById('btnCriarProposta'); 
+    
+    // Variáveis do Modal
+    const modalOverlay = document.getElementById('proposalModalOverlay');
+    const proposalForm = document.getElementById('proposalForm');
+    
+    let proposals = [];
+    let proposalIdCounter = 1;
+
+
+    // ---------------------------------------------------
+    // 🔵 FUNÇÕES DE INTERFACE E UTILIDADE
+    // ---------------------------------------------------
+
+    // Animação do background e Header (Mantido)
     document.body.addEventListener('mousemove', (e) => {
         const x = e.clientX;
         const y = e.clientY;
         document.body.style.background = `radial-gradient(circle at ${x}px ${y}px, #3115cc, #101011)`;
     });
 
-    // 🔵 Esconder/mostrar header ao scroll
     let lastScroll = 0;
     const header = document.querySelector("header");
     window.addEventListener("scroll", () => {
         const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
-        if (currentScroll > lastScroll) {
-            header.style.top = "-100px";
-        } else {
-            header.style.top = "0";
-        }
+        header.style.top = currentScroll > lastScroll ? "-100px" : "0";
         lastScroll = currentScroll <= 0 ? 0 : currentScroll;
     });
 
-    // 🔵 Dropdown do usuário
-    const userContainer = document.querySelector('.user-container');
-    if (userContainer) {
-        const userDropdown = document.createElement('div');
-        userDropdown.classList.add('user-dropdown');
-        userDropdown.innerHTML = `
-            <ul>
-                <li>Visualizar Perfil</li>
-                <li>Trocar Foto</li>
-                <li>Sair</li>
-            </ul>
-        `;
-        document.body.appendChild(userDropdown);
-
-        userContainer.addEventListener('click', () => {
-            userDropdown.classList.toggle('active');
-            userContainer.classList.toggle('active');
-        });
-
-        document.addEventListener('click', e => {
-            if (!userContainer.contains(e.target) && !userDropdown.contains(e.target)) {
-                userDropdown.classList.remove('active');
-                userContainer.classList.remove('active');
-            }
-        });
-    }
-
-    // 🔵 --- TABELA DE PROCESSOS (criar-template page) ---
-    const tabelaBase = document.getElementById('tabelaProcessos');
-    if (tabelaBase) {
-        const tabela = tabelaBase.querySelector('tbody');
-        const btnAdicionar = document.getElementById('btnAdicionarLinha');
-        let contador = 0;
-        const limite = 5;
-
-        function criarModalProcessos(input) {
-            const modal = document.createElement('div');
-            modal.className = 'modal-processos';
-            const modalContent = document.createElement('div');
-            modalContent.className = 'modal-content-processos';
-            const modalTextarea = document.createElement('textarea');
-            modalTextarea.className = 'modal-textarea-processos';
-            modalTextarea.value = input.value || '';
-
-            const buttonsDiv = document.createElement('div');
-            buttonsDiv.className = 'modal-buttons';
-            const saveBtn = document.createElement('button');
-            saveBtn.className = 'btn-salvar-modal';
-            saveBtn.textContent = 'Salvar';
-            const cancelBtn = document.createElement('button');
-            cancelBtn.className = 'btn-cancelar-modal';
-            cancelBtn.textContent = 'Cancelar';
-            buttonsDiv.appendChild(saveBtn);
-            buttonsDiv.appendChild(cancelBtn);
-
-            modalContent.appendChild(modalTextarea);
-            modalContent.appendChild(buttonsDiv);
-            modal.appendChild(modalContent);
-            document.body.appendChild(modal);
-
-            input.addEventListener('focus', () => {
-                modal.classList.add('active');
-                modalTextarea.focus();
-            });
-
-            saveBtn.addEventListener('click', () => {
-                input.value = modalTextarea.value;
-                modal.classList.remove('active');
-            });
-
-            cancelBtn.addEventListener('click', () => {
-                modal.classList.remove('active');
-            });
-
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) modal.classList.remove('active');
-            });
-
-            modalTextarea.addEventListener('input', function () {
-                this.style.height = 'auto';
-                this.style.height = this.scrollHeight + 'px';
-            });
+    // Função show/hide Modal - USANDO A CLASSE 'active' DO SEU CSS
+    function showModal() {
+        const dateInput = document.getElementById('modal-data');
+        if (dateInput) {
+            dateInput.value = new Date().toISOString().substring(0, 10);
         }
-
-        btnAdicionar.addEventListener('click', () => {
-            if (contador >= limite) {
-                alert(`Você só pode adicionar até ${limite} linhas.`);
-                return;
-            }
-
-            const linha = document.createElement('tr');
-            linha.innerHTML = `
-                <td><input type="text" class="processos-input" placeholder="Digite os processos"></td>
-                <td><input type="date" class="data-input"></td>
-                <td><input type="time" class="hora-input"></td>
-                <td><button type="button" class="btn-excluir">Excluir</button></td>
-            `;
-            tabela.appendChild(linha);
-            contador++;
-
-            const processosInput = linha.querySelector('.processos-input');
-            criarModalProcessos(processosInput);
-
-            linha.querySelector('.btn-excluir').addEventListener('click', () => {
-                tabela.removeChild(linha);
-                contador--;
-            });
-
-            processosInput.addEventListener('input', function () {
-                this.style.height = 'auto';
-                this.style.height = this.scrollHeight + 'px';
-            });
-        });
+        if (modalOverlay) modalOverlay.classList.add('active');
     }
 
-    // 🔵 --- PROPOSTAS: criar / editar / visualizar / excluir / filtros / exportar PDF ---
-    const filtroCliente = document.getElementById('filtroCliente');
-    const filtroTemplate = document.getElementById('filtroTemplate');
-    const filtroStatus = document.getElementById('filtroStatus');
-    const tabelaPropostas = document.getElementById('propostasTable');
-    const btnCriarProposta = document.getElementById('btnCriarProposta');
-    const btnExportar = document.getElementById('btnExportarPDF');
-
-    let proposals = [];
-    let proposalIdCounter = 1;
-
-    function preencherSelectComValoresUnicos(selectEl, values) {
-        if (!selectEl) return;
-        const first = selectEl.querySelector('option');
-        selectEl.innerHTML = '';
-        if (first) selectEl.appendChild(first.cloneNode(true));
-        const unique = Array.from(new Set(values)).filter(v => v && v !== '');
-        unique.forEach(v => {
-            const o = document.createElement('option');
-            o.value = v;
-            o.textContent = v;
-            selectEl.appendChild(o);
-        });
+    function hideModal() {
+        if (modalOverlay) modalOverlay.classList.remove('active');
+        if (proposalForm) proposalForm.reset();
     }
 
-    function atualizarFiltrosGlobais() {
-        const clientes = proposals.map(p => p.cliente);
-        const templates = proposals.map(p => p.template);
-        preencherSelectComValoresUnicos(filtroCliente, clientes);
-        preencherSelectComValoresUnicos(filtroTemplate, templates);
+    // Coleta dados do formulário do modal
+    function coletarDadosDoModal() {
+        return {
+            id: proposalIdCounter++,
+            cliente: document.getElementById('modal-nome').value,
+            email: document.getElementById('modal-email').value,
+            data: document.getElementById('modal-data').value,
+            status: document.getElementById('modal-status').value,
+            mensagem: document.getElementById('modal-mensagem').value,
+            responsavel: 'Equipe Atual', 
+            valor: 'R$ 0,00', 
+            template: 'N/A' 
+        };
+    }
+    
+    // Funções de Tabela e Filtros (Mantidas)
+    function atualizarFiltros() {
+        if (!filtroCliente || !filtroTemplate) return;
+        const clientes = Array.from(new Set(proposals.map(p => p.cliente))).sort();
+        const templates = Array.from(new Set(proposals.map(p => p.template))).sort();
+
+        filtroCliente.innerHTML = '<option value="">Todos os Clientes</option>';
+        clientes.forEach(c => filtroCliente.innerHTML += `<option value="${c}">${c}</option>`);
+
+        filtroTemplate.innerHTML = '<option value="">Todos os Templates</option>';
+        templates.forEach(t => filtroTemplate.innerHTML += `<option value="${t}">${t}</option>`);
     }
 
     function aplicarFiltros() {
-        if (!tabelaPropostas) return;
-        const tbody = tabelaPropostas.querySelector('tbody');
-        const rows = Array.from(tbody.rows);
+        if (!tabelaPrincipal) return;
+        const tbody = tabelaPrincipal.querySelector('tbody');
         const cliente = filtroCliente ? filtroCliente.value : '';
-        const template = filtroTemplate ? filtroTemplate.value : '';
         const status = filtroStatus ? filtroStatus.value : '';
 
-        rows.forEach(r => {
-            const cols = r.getElementsByTagName('td');
+        const statusColIndex = isPropostasPage ? 3 : 2; 
+        
+        Array.from(tbody.rows).forEach(row => {
+            const cols = row.getElementsByTagName('td');
             const matchCliente = cliente === '' || cols[0].textContent === cliente;
-            const matchTemplate = template === '' || cols[1].textContent === template;
-            const matchStatus = status === '' || cols[3].textContent === status;
-            r.style.display = (matchCliente && matchTemplate && matchStatus) ? '' : 'none';
+            const matchStatus = status === '' || cols[statusColIndex].textContent === status;
+
+            row.style.display = (matchCliente && matchStatus) ? '' : 'none';
         });
     }
 
     function criarLinhaTabela(proposal) {
-        if (!tabelaPropostas) return;
-        const tbody = tabelaPropostas.querySelector('tbody');
+        if (!tabelaPrincipal) return;
+        const tbody = tabelaPrincipal.querySelector('tbody');
         const tr = document.createElement('tr');
         tr.dataset.id = proposal.id;
-        tr.innerHTML = `
-            <td>${proposal.cliente}</td>
-            <td>${proposal.template}</td>
-            <td>${proposal.data}</td>
-            <td>${proposal.status}</td>
-            <td>
-                <button class="btn-visualizar">Visualizar</button>
-                <button class="btn-editar">Editar</button>
-                <button class="btn-excluir">Excluir</button>
-            </td>
-        `;
+        
+        if (isPropostasPage) {
+            tr.innerHTML = `
+                <td>${proposal.cliente}</td>
+                <td>${proposal.template || '-'}</td>
+                <td>${proposal.data}</td>
+                <td>${proposal.status}</td>
+                <td><button class="btn-detalhes" data-id="${proposal.id}">Baixar pdf</button></td>
+            `;
+        } else if (isAnalisePage) {
+             tr.innerHTML = `
+                <td>${proposal.cliente}</td>
+                <td>${proposal.data}</td>
+                <td>${proposal.status}</td>
+                <td>${proposal.valor || 'R$ 0,00'}</td>
+                <td>${proposal.responsavel || '-'}</td>
+            `;
+        }
         tbody.appendChild(tr);
-
-        tr.querySelector('.btn-visualizar').addEventListener('click', () => visualizarProposal(proposal.id));
-        tr.querySelector('.btn-editar').addEventListener('click', () => editarProposal(proposal.id));
-        tr.querySelector('.btn-excluir').addEventListener('click', () => excluirProposal(proposal.id));
     }
 
     function refreshTabela() {
-        if (!tabelaPropostas) return;
-        const tbody = tabelaPropostas.querySelector('tbody');
+        if (!tabelaPrincipal) return;
+        const tbody = tabelaPrincipal.querySelector('tbody');
         tbody.innerHTML = '';
         proposals.forEach(p => criarLinhaTabela(p));
-        atualizarFiltrosGlobais();
+        atualizarFiltros();
         aplicarFiltros();
-    }
 
-    function visualizarProposal(id) {
-        const p = proposals.find(x => x.id === id);
-        if (!p) return;
-        abrirModalCriarEditar({ ...p, readonly: true });
-    }
-
-    function editarProposal(id) {
-        const p = proposals.find(x => x.id === id);
-        if (!p) return;
-        abrirModalCriarEditar({ ...p, readonly: false, editingId: id });
-    }
-
-    function excluirProposal(id) {
-        if (!confirm('Deseja remover esta proposta?')) return;
-        proposals = proposals.filter(x => x.id !== id);
-        refreshTabela();
-    }
-
-    function abrirModalCriarEditar(options = {}) {
-        const modal = document.createElement('div');
-        modal.className = 'modal-processos';
-        const content = document.createElement('div');
-        content.className = 'modal-content-processos';
-
-        const title = document.createElement('h3');
-        title.style.margin = '0';
-        title.style.color = '#3115cc';
-        title.textContent = options.editingId ? 'Editar Proposta' : (options.readonly ? 'Visualizar Proposta' : 'Criar Proposta');
-
-        const clienteInput = document.createElement('input');
-        clienteInput.placeholder = 'Cliente';
-        clienteInput.value = options.cliente || '';
-
-        const emailInput = document.createElement('input');
-        emailInput.type = 'email';
-        emailInput.placeholder = 'E-mail do Cliente';
-        emailInput.value = options.email || '';
-
-        const templateInput = document.createElement('input');
-        templateInput.placeholder = 'Template';
-        templateInput.value = options.template || '';
-
-        const dataInput = document.createElement('input');
-        dataInput.type = 'date';
-        dataInput.value = options.data || new Date().toISOString().slice(0, 10);
-
-        const statusSelect = document.createElement('select');
-        ['Pendente', 'Aprovada', 'Rejeitada'].forEach(s => {
-            const o = document.createElement('option');
-            o.value = s;
-            o.textContent = s;
-            statusSelect.appendChild(o);
-        });
-        statusSelect.value = options.status || 'Pendente';
-
-        const mensagem = document.createElement('textarea');
-        mensagem.placeholder = 'Mensagem de aprovação/negação (opcional)';
-        mensagem.value = options.mensagem || '';
-
-        const buttonsDiv = document.createElement('div');
-        buttonsDiv.className = 'modal-buttons';
-
-        const salvarBtn = document.createElement('button');
-        salvarBtn.className = 'btn-salvar-modal';
-        salvarBtn.textContent = options.readonly ? 'Fechar' : 'Salvar';
-
-        const exportBtn = document.createElement('button');
-        exportBtn.className = 'btn-criar';
-        exportBtn.textContent = 'Exportar PDF';
-
-        const cancelarBtn = document.createElement('button');
-        cancelarBtn.className = 'btn-cancelar-modal';
-        cancelarBtn.textContent = 'Cancelar';
-
-        buttonsDiv.appendChild(exportBtn);
-        if (!options.readonly) buttonsDiv.appendChild(salvarBtn);
-        buttonsDiv.appendChild(cancelarBtn);
-
-        content.appendChild(title);
-        content.appendChild(clienteInput);
-        content.appendChild(emailInput);
-        content.appendChild(templateInput);
-        content.appendChild(dataInput);
-        content.appendChild(statusSelect);
-        content.appendChild(mensagem);
-        content.appendChild(buttonsDiv);
-        modal.appendChild(content);
-        document.body.appendChild(modal);
-
-        function closeModal() {
-            modal.classList.remove('active');
-            setTimeout(() => modal.remove(), 250);
+        // Adiciona o listener para os botões 'Detalhes' após a tabela ser recriada
+        if (isPropostasPage) {
+            document.querySelectorAll('.btn-detalhes').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const proposalId = parseInt(e.target.dataset.id);
+                    const proposal = proposals.find(p => p.id === proposalId);
+                    if (proposal) {
+                        gerarPdfPropostaIndividual(proposal);
+                    } else {
+                        alert('Dados da proposta não encontrados.');
+                    }
+                });
+            });
         }
-
-        if (options.readonly) {
-            clienteInput.readOnly = true;
-            emailInput.readOnly = true;
-            templateInput.readOnly = true;
-            dataInput.readOnly = true;
-            statusSelect.disabled = true;
-            mensagem.readOnly = true;
-        }
-
-        setTimeout(() => modal.classList.add('active'), 10);
-
-        cancelarBtn.addEventListener('click', closeModal);
-
-        salvarBtn && salvarBtn.addEventListener('click', () => {
-            const cliente = clienteInput.value.trim();
-            const email = emailInput.value.trim();
-            const template = templateInput.value.trim();
-            const data = dataInput.value;
-            const status = statusSelect.value;
-            const msg = mensagem.value.trim();
-
-            if (!cliente || !template || !email) {
-                alert('Preencha Cliente, E-mail e Template.');
-                return;
-            }
-
-            if (options.editingId) {
-                const idx = proposals.findIndex(x => x.id === options.editingId);
-                if (idx !== -1) {
-                    proposals[idx] = { id: options.editingId, cliente, email, template, data, status, mensagem: msg };
-                }
-            } else {
-                proposals.push({ id: proposalIdCounter++, cliente, email, template, data, status, mensagem: msg });
-            }
-            refreshTabela();
-            closeModal();
-        });
-
-        exportBtn.addEventListener('click', () => {
-            const cliente = clienteInput.value.trim();
-            const email = emailInput.value.trim();
-            const template = templateInput.value.trim();
-            const data = dataInput.value;
-            const status = statusSelect.value;
-            const msg = mensagem.value.trim();
-
-            if (!cliente || !template || !email) {
-                alert('Preencha Cliente, E-mail e Template para exportar.');
-                return;
-            }
-
-            generatePDFFromProposals([{ cliente, email, template, data, status, mensagem: msg }], `Proposta - ${cliente}`);
-        });
-
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeModal();
-        });
     }
-
-    function gatherVisibleProposalsFromTable() {
-        if (!tabelaPropostas) return [];
-        const tbody = tabelaPropostas.querySelector('tbody');
-        const rows = Array.from(tbody.rows).filter(r => r.style.display !== 'none');
-        return rows.map(r => {
-            const cols = r.getElementsByTagName('td');
-            const prop = proposals.find(p => p.cliente === cols[0].textContent && p.template === cols[1].textContent);
-            return prop || {};
-        });
-    }
-
-    function generatePDFFromProposals(proposalsToExport, title) {
-        const jsPDFCtor = window.jspdf?.jsPDF || window.jsPDF;
-        if (!jsPDFCtor) {
-            alert('Para exportar PDF, inclua jsPDF (CDN) antes do seu script.');
+    
+    // Função de geração de PDF a partir de QUALQUER objeto de dados de proposta
+    function gerarPdfPropostaIndividual(data) {
+        if (typeof window.jspdf === 'undefined') {
+            alert('A biblioteca jsPDF não está carregada. Verifique a tag <script> no HTML.');
             return;
         }
 
-        const doc = new jsPDFCtor();
-        doc.setFontSize(16);
-        doc.text(title || 'Relatório de Propostas', 14, 20);
-        doc.setFontSize(10);
-        doc.text(`Emitido em: ${new Date().toLocaleString()}`, 14, 28);
-        let y = 36;
-        const margin = 14;
-        const maxLineWidth = doc.internal.pageSize.getWidth() - margin * 2;
-
-        proposalsToExport.forEach((p, idx) => {
-            doc.setFontSize(12);
-            doc.text(`${idx + 1}. Cliente: ${p.cliente}`, margin, y);
-            y += 6;
-            doc.text(`E-mail: ${p.email}`, margin, y);
-            y += 6;
-            doc.text(`Template: ${p.template}    Data: ${p.data}    Status: ${p.status}`, margin, y);
-            y += 6;
-            if (p.mensagem) {
-                const lines = doc.splitTextToSize(`Mensagem: ${p.mensagem}`, maxLineWidth);
-                doc.text(lines, margin, y);
-                y += lines.length * 6;
-            }
-            y += 8;
-            if (y > doc.internal.pageSize.getHeight() - 30) {
-                doc.addPage();
-                y = 20;
-            }
-        });
-
-        doc.save('relatorio-propostas.pdf');
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        doc.setFontSize(18);
+        doc.text("Proposta de Cliente", 10, 10);
+        doc.setFontSize(12);
+        
+        let y = 20;
+        doc.text(`Cliente: ${data.cliente}`, 10, y); y += 7;
+        doc.text(`E-mail: ${data.email || 'N/A'}`, 10, y); y += 7;
+        doc.text(`Data da Proposta: ${data.data}`, 10, y); y += 7;
+        doc.text(`Status de Validação: ${data.status}`, 10, y); y += 10;
+        doc.text(`Mensagem da Equipe:`, 10, y); y += 5;
+        
+        // Quebra de linha para mensagem longa
+        const splitText = doc.splitTextToSize(data.mensagem || 'N/A', 180);
+        doc.text(splitText, 10, y);
+        
+        doc.save(`proposta_${data.cliente.replace(/\s/g, '_')}_${data.data}.pdf`);
     }
 
+    // ---------------------------------------------------
+    // 🔵 EVENTOS E LISTENERS
+    // ---------------------------------------------------
+
+    // 1. ABRIR MODAL: Botão "Criar / Exportar Proposta"
+    if (btnCriarProposta) {
+        btnCriarProposta.addEventListener('click', (e) => {
+            e.preventDefault(); 
+            showModal();
+        });
+    }
+
+    // 2. AÇÕES DO MODAL
+    
+    // Botão "Exportar Direto (PDF)"
+    document.addEventListener('click', (e) => {
+        if (e.target.id === 'btnExportarDireto') {
+            e.preventDefault();
+            
+            if (!proposalForm.checkValidity()) {
+                proposalForm.reportValidity();
+                return;
+            }
+            
+            const newProposalData = coletarDadosDoModal();
+            gerarPdfPropostaIndividual(newProposalData); // Reutilizando a função
+            hideModal();
+        }
+    });
+    
+    // Botão "Salvar Proposta" (Submissão do formulário)
+    if (proposalForm) {
+        proposalForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newProposalData = coletarDadosDoModal();
+            
+            console.log("Enviando dados para o back-end:", newProposalData);
+            alert(`Proposta de ${newProposalData.cliente} salva com sucesso! (Simulação)`);
+
+            proposals.push(newProposalData);
+            refreshTabela();
+            
+            hideModal();
+        });
+    }
+    
+    // Botão "Cancelar" e clique no fundo do modal
+    document.addEventListener('click', (e) => {
+        if (e.target.id === 'btnCancelarModal' || e.target.id === 'proposalModalOverlay') {
+            e.preventDefault();
+            hideModal();
+        }
+    });
+
+    // 3. REMOVIDO: EXPORTAR PDF (Visíveis da Tabela)
+    // O botão btnExportarPDF agora não tem ação no JS.
+
+    // 4. EXPORTAR CSV (Análise) - Lógica da página Análise (Mantida)
+    if (isAnalisePage && btnExportarExcel) {
+        btnExportarExcel.addEventListener('click', () => {
+            // ... (Lógica de exportação CSV aqui)
+            if (!tabelaPrincipal) return;
+            const SEPARADOR = ';';
+            const headers = ['Cliente','Data','Status','Valor','Responsável','Template']; 
+            
+            const rows = proposals.filter(p => {
+                const cliente = filtroCliente ? filtroCliente.value : '';
+                const status = filtroStatus ? filtroStatus.value : '';
+                const matchCliente = cliente === '' || p.cliente === cliente;
+                const matchStatus = status === '' || p.status === status;
+                return matchCliente && matchStatus;
+            });
+
+            const BOM = '\uFEFF'; 
+            const csvData = [headers.join(SEPARADOR)];
+            
+            rows.forEach(proposal => {
+                const cols = [
+                    proposal.cliente, proposal.data, proposal.status, 
+                    proposal.valor || 'R$ 0,00', proposal.responsavel || '-', 
+                    proposal.template || '-'
+                ].map(text => `"${String(text).trim().replace(/"/g, '""')}"`);
+                csvData.push(cols.join(SEPARADOR));
+            });
+
+            const csv = BOM + csvData.join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'analise.csv';
+            a.click();
+            a.remove();
+            alert('Dados da Análise exportados para CSV (Excel).');
+        });
+    }
+
+
+    // ---------------------------------------------------
+    // 🔵 INICIALIZAÇÃO
+    // ---------------------------------------------------
+    if (tabelaPrincipal) {
+        refreshTabela();
+    }
+    
+    // Eventos filtros
     if (filtroCliente) filtroCliente.addEventListener('change', aplicarFiltros);
     if (filtroTemplate) filtroTemplate.addEventListener('change', aplicarFiltros);
     if (filtroStatus) filtroStatus.addEventListener('change', aplicarFiltros);
 
-    if (btnCriarProposta) {
-        btnCriarProposta.addEventListener('click', () => abrirModalCriarEditar());
-    }
-
-    if (btnExportar) {
-        btnExportar.addEventListener('click', () => {
-            const visible = gatherVisibleProposalsFromTable();
-            if (!visible.length) {
-                alert('Não há propostas visíveis para exportar.');
-                return;
-            }
-            generatePDFFromProposals(visible, 'Relatório de Propostas');
-        });
-    }
-
-    refreshTabela();
 });

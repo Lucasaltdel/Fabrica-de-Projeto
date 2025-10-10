@@ -1,71 +1,110 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Propostas</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Propostas</title>
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header>
-    <div>
-      <img src="assets/logo-eficaz-branco-1024x339.png" alt="Logo Eficaz" class="logo">
-      <div class="titulo">
-        <h1>Gerenciador de Proposta</h1>
-        <h3>CRM</h3>
-      </div>
-      <div class="user-container">
-        <img src="assets/icone-de-perfil-de-avatar-padrao-imagem-de-usuario-de-midia-social-icone-de-avatar-cinza-silhueta-de-perfil-em-branco-ilustracao-vetorial_561158-3407.jpg" alt="Usuário" class="user">
-      </div>
+    <header>
+        <div>
+            <img src="assets/logo-eficaz-branco-1024x339.png" alt="Logo Eficaz" class="logo">
+            <div class="titulo">
+                <h1>Gerenciador de Proposta</h1>
+                <h3>CRM</h3>
+            </div>
+            <div class="user-container">
+                <img src="assets/icone-de-perfil-de-avatar-padrao-imagem-de-usuario-de-midia-social-icone-de-avatar-cinza-silhueta-de-perfil-em-branco-ilustracao-vetorial_561158-3407.jpg" alt="Usuário" class="user">
+            </div>
+        </div>
+        <nav class="menu">
+            <ul>
+                <li><a href="Formulario.html">Forms</a></li>
+                <li><a href="Templates.html">Templates</a></li>
+                <li><a href="Propostas.html">+ Propostas</a></li>
+                <li><a href="Analise.html">Análise</a></li>
+                <li><a href="Clientes.html">Clientes</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="propostas-tabela">
+        <h2>Propostas dos Clientes</h2>
+
+        <div class="propostas-filtros">
+            <select id="filtroCliente">
+                <option value="">Filtrar por Cliente</option>
+            </select>
+
+            <select id="filtroTemplate">
+                <option value="">Filtrar por Template</option>
+            </select>
+
+            <select id="filtroStatus">
+                <option value="">Filtrar por Status</option>
+                <option value="Pendente">Pendente</option>
+                <option value="Aprovada">Aprovada</option>
+                <option value="Rejeitada">Rejeitada</option>
+            </select>
+        </div>
+
+        <div class="propostas-actions">
+            <div>
+                <button id="btnCriarProposta" class="btn-criar">Criar / Exportar Proposta</button>
+            </div>
+        </div>
+
+        <div class="propostas-table">
+            <table id="propostasTable">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Template</th>
+                        <th>Data</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
+        </div>
+    </section>
+
+    <div class="modal-processos" id="proposalModalOverlay">
+        <div class="modal-content-processos">
+            <h3>Criar / Exportar Proposta</h3>
+            <form id="proposalForm">
+                
+                <label for="modal-nome">Nome do Cliente:</label>
+                <input type="text" id="modal-nome" placeholder="Nome do Cliente" required>
+
+                <label for="modal-email">E-mail do Cliente:</label>
+                <input type="email" id="modal-email" placeholder="email@cliente.com" required>
+
+                <label for="modal-data">Data da Proposta:</label>
+                <input type="date" id="modal-data" required>
+
+                <label for="modal-status">Status de Validação:</label>
+                <select id="modal-status" required>
+                    <option value="Pendente">Verificando (Pendente)</option>
+                    <option value="Aprovada">Aprovada</option>
+                    <option value="Rejeitada">Não Aprovada</option>
+                </select>
+
+                <label for="modal-mensagem">Mensagem da Equipe:</label>
+                <textarea id="modal-mensagem" placeholder="Detalhes ou observações da equipe."></textarea>
+
+                <div class="modal-buttons">
+                    <button type="button" id="btnExportarDireto" class="btn-exportar-modal">Exportar Direto (PDF)</button>
+                    <button type="submit" id="btnSalvar" class="btn-salvar-modal">Salvar Proposta</button>
+                    <button type="button" id="btnCancelarModal" class="btn-cancelar-modal">Cancelar</button>
+                </div>
+            </form>
+        </div>
     </div>
-  </header>
-
-  <section class="propostas-tabela">
-    <h2>Propostas dos Clientes</h2>
-
-    <div class="propostas-filtros">
-      <select id="filtroCliente">
-        <option value="">Filtrar por Cliente</option>
-      </select>
-
-      <select id="filtroTemplate">
-        <option value="">Filtrar por Template</option>
-      </select>
-
-      <select id="filtroStatus">
-        <option value="">Filtrar por Status</option>
-        <option value="Pendente">Pendente</option>
-        <option value="Aprovada">Aprovada</option>
-        <option value="Rejeitada">Rejeitada</option>
-      </select>
-    </div>
-
-    <div class="propostas-actions">
-      <div>
-        <button id="btnExportarPDF" class="btn-exportar">Exportar PDF (visíveis)</button>
-        <button id="btnCriarProposta" class="btn-criar">Criar / Exportar Proposta</button>
-      </div>
-    </div>
-
-    <div class="propostas-table">
-      <table id="propostasTable">
-        <thead>
-          <tr>
-            <th>Cliente</th>
-            <th>Template</th>
-            <th>Data</th>
-            <th>Status</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- propostas serão adicionadas dinamicamente pelo JS -->
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
