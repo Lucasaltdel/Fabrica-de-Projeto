@@ -44,6 +44,102 @@ document.addEventListener('DOMContentLoaded', () => {
         lastScroll = currentScroll <= 0 ? 0 : currentScroll;
     });
 
+// -----------------------------
+// 🔵 ADICIONAR LINHA (templates) + CRIAR TEMPLATE (limite persistente)
+// Cole este bloco ANTES do fechamento do `document.addEventListener('DOMContentLoaded', ... );`
+// -----------------------------
+(function() {
+
+    // =========================================================
+    // 🟩 ADICIONAR LINHA NA TABELA DE PROCESSOS (limite de 5)
+    // =========================================================
+    const btnAdicionarLinha = document.getElementById('btnAdicionarLinha');
+    const tabelaProcessosEl = document.getElementById('tabelaProcessos');
+    const tbodyProcessos = tabelaProcessosEl ? tabelaProcessosEl.querySelector('tbody') : null;
+    const MAX_LINHAS = 5;
+
+    if (btnAdicionarLinha && tbodyProcessos) {
+        btnAdicionarLinha.addEventListener('click', (e) => {
+            e.preventDefault();
+
+            const linhasAtuais = tbodyProcessos.querySelectorAll('tr').length;
+            if (linhasAtuais >= MAX_LINHAS) {
+                alert(`⚠️ Você atingiu o limite máximo de ${MAX_LINHAS} linhas.`);
+                return;
+            }
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="text" name="processo[]" placeholder="Digite o processo" required></td>
+                <td><input type="date" name="data[]" required></td>
+                <td><input type="time" name="hora[]" required></td>
+                <td><button type="button" class="btn-remover">Remover</button></td>
+            `;
+            tbodyProcessos.appendChild(tr);
+        });
+
+        // Remover linha (delegação)
+        tbodyProcessos.addEventListener('click', (e) => {
+            if (e.target.classList.contains('btn-remover')) {
+                const linha = e.target.closest('tr');
+                if (linha) linha.remove();
+            }
+        });
+
+    } else {
+        console.log('⚠️ [Adicionar Linha] Elementos não encontrados (#btnAdicionarLinha ou #tabelaProcessos).');
+    }
+
+    // =========================================================
+    // 🟦 CRIAR TEMPLATE COM LIMITE DE 5 (persistente via localStorage)
+    // =========================================================
+    const btnCriarTemplate = document.getElementById('btnCriarTemplate');
+    const STORAGE_KEY = 'templatesCriados_v1';
+    const MAX_TEMPLATES = 5;
+
+    function getTemplatesCount() {
+        return parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
+    }
+
+    function setTemplatesCount(n) {
+        localStorage.setItem(STORAGE_KEY, String(n));
+    }
+
+    if (btnCriarTemplate) {
+        btnCriarTemplate.addEventListener('click', (e) => {
+            e.preventDefault();
+
+            let count = getTemplatesCount();
+            if (count >= MAX_TEMPLATES) {
+                alert(`⚠️ Limite máximo de ${MAX_TEMPLATES} templates atingido.`);
+                return;
+            }
+
+            count++;
+            setTemplatesCount(count);
+
+            // Redireciona para a página de criação
+            const href = btnCriarTemplate.getAttribute('data-href') || btnCriarTemplate.getAttribute('href');
+            window.location.href = href || 'criar-template.html';
+        });
+    }
+
+    // =========================================================
+    // 🟨 CONTADOR VISUAL (opcional)
+    // =========================================================
+    const contadorEl = document.getElementById('templatesContador');
+    if (contadorEl) {
+        function atualizarContadorUI() {
+            const c = getTemplatesCount();
+            contadorEl.textContent = `${c}/${MAX_TEMPLATES} templates criados`;
+        }
+        atualizarContadorUI();
+        window.addEventListener('storage', atualizarContadorUI);
+    }
+
+})();
+
+
     // Função show/hide Modal - USANDO A CLASSE 'active' DO SEU CSS
     function showModal() {
         const dateInput = document.getElementById('modal-data');
