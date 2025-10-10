@@ -1,37 +1,35 @@
 // Verifica o contexto da página
 const isPropostasPage = !!document.getElementById('propostasTable');
-const isAnalisePage = !!document.getElementById('tabelaAnalise');
-const isClientesPage = !!document.getElementById('clientesTableBody');
+const isAnalisePage = !!document.getElementById('tabelaAnalise'); 
 
 document.addEventListener('DOMContentLoaded', () => {
 
     // ---------------------------------------------------
-    // 🔵 VARIÁVEIS DE ELEMENTOS COMUNS E INICIAIS
+    // 🔵 VARIÁVEIS DE ELEMENTOS
     // ---------------------------------------------------
-    const header = document.querySelector("header");
-    
-    // Variáveis Comuns a Propostas/Análise
-    const tabelaPrincipal = document.getElementById('propostasTable') || document.getElementById('tabelaAnalise');
     const filtroCliente = document.getElementById('filtroCliente');
     const filtroTemplate = document.getElementById('filtroTemplate');
     const filtroStatus = document.getElementById('filtroStatus');
+    const tabelaPrincipal = document.getElementById('propostasTable') || document.getElementById('tabelaAnalise');
+    
+    // O botão btnExportarPDF não terá mais função ativa, mas o ID é mantido.
+    const btnExportarPDF = document.getElementById('btnExportarPDF'); 
     const btnExportarExcel = document.getElementById('exportarExcel');
     const btnCriarProposta = document.getElementById('btnCriarProposta'); 
     
-    // Variáveis do Modal (Propostas)
+    // Variáveis do Modal
     const modalOverlay = document.getElementById('proposalModalOverlay');
     const proposalForm = document.getElementById('proposalForm');
     
-    // Simulação de dados (APENAS PARA PROPOSTAS/ANÁLISE, POIS NÃO SÃO PAGINADAS POR API)
     let proposals = [];
     let proposalIdCounter = 1;
 
 
     // ---------------------------------------------------
-    // 🔵 FUNÇÕES DE INTERFACE E UTILIDADE (Comuns)
+    // 🔵 FUNÇÕES DE INTERFACE E UTILIDADE
     // ---------------------------------------------------
 
-    // Animação do background e Header
+    // Animação do background e Header (Mantido)
     document.body.addEventListener('mousemove', (e) => {
         const x = e.clientX;
         const y = e.clientY;
@@ -39,215 +37,257 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     let lastScroll = 0;
-    if (header) {
-        window.addEventListener("scroll", () => {
-            const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
-            header.style.top = currentScroll > lastScroll ? "-100px" : "0";
-            lastScroll = currentScroll <= 0 ? 0 : currentScroll;
+    const header = document.querySelector("header");
+    window.addEventListener("scroll", () => {
+        const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+        header.style.top = currentScroll > lastScroll ? "-100px" : "0";
+        lastScroll = currentScroll <= 0 ? 0 : currentScroll;
+    });
+
+    // Função show/hide Modal - USANDO A CLASSE 'active' DO SEU CSS
+    function showModal() {
+        const dateInput = document.getElementById('modal-data');
+        if (dateInput) {
+            dateInput.value = new Date().toISOString().substring(0, 10);
+        }
+        if (modalOverlay) modalOverlay.classList.add('active');
+    }
+
+    function hideModal() {
+        if (modalOverlay) modalOverlay.classList.remove('active');
+        if (proposalForm) proposalForm.reset();
+    }
+
+    // Coleta dados do formulário do modal
+    function coletarDadosDoModal() {
+        return {
+            id: proposalIdCounter++,
+            cliente: document.getElementById('modal-nome').value,
+            email: document.getElementById('modal-email').value,
+            data: document.getElementById('modal-data').value,
+            status: document.getElementById('modal-status').value,
+            mensagem: document.getElementById('modal-mensagem').value,
+            responsavel: 'Equipe Atual', 
+            valor: 'R$ 0,00', 
+            template: 'N/A' 
+        };
+    }
+    
+    // Funções de Tabela e Filtros (Mantidas)
+    function atualizarFiltros() {
+        if (!filtroCliente || !filtroTemplate) return;
+        const clientes = Array.from(new Set(proposals.map(p => p.cliente))).sort();
+        const templates = Array.from(new Set(proposals.map(p => p.template))).sort();
+
+        filtroCliente.innerHTML = '<option value="">Todos os Clientes</option>';
+        clientes.forEach(c => filtroCliente.innerHTML += `<option value="${c}">${c}</option>`);
+
+        filtroTemplate.innerHTML = '<option value="">Todos os Templates</option>';
+        templates.forEach(t => filtroTemplate.innerHTML += `<option value="${t}">${t}</option>`);
+    }
+
+    function aplicarFiltros() {
+        if (!tabelaPrincipal) return;
+        const tbody = tabelaPrincipal.querySelector('tbody');
+        const cliente = filtroCliente ? filtroCliente.value : '';
+        const status = filtroStatus ? filtroStatus.value : '';
+
+        const statusColIndex = isPropostasPage ? 3 : 2; 
+        
+        Array.from(tbody.rows).forEach(row => {
+            const cols = row.getElementsByTagName('td');
+            const matchCliente = cliente === '' || cols[0].textContent === cliente;
+            const matchStatus = status === '' || cols[statusColIndex].textContent === status;
+
+            row.style.display = (matchCliente && matchStatus) ? '' : 'none';
         });
     }
 
-    // Funções de Modal e PDF (PROPOSTAS) - (Omitidas por brevidade, mas devem estar completas aqui)
-    function showModal() { /* ... */ }
-    function hideModal() { /* ... */ }
-    function coletarDadosDoModal() { /* ... */ return {}; }
-    function gerarPdfPropostaIndividual(data) { /* ... */ }
-
-    // ---------------------------------------------------
-    // 🟢 LÓGICA DA PÁGINA: PROPOSTAS E ANÁLISE
-    // ---------------------------------------------------
-    if (isPropostasPage || isAnalisePage) {
+    function criarLinhaTabela(proposal) {
+        if (!tabelaPrincipal) return;
+        const tbody = tabelaPrincipal.querySelector('tbody');
+        const tr = document.createElement('tr');
+        tr.dataset.id = proposal.id;
         
-        // ... (Corpo da lógica de Propostas e Análise, incluindo funções como atualizarFiltros, aplicarFiltros, refreshTabela, etc.)
-        
-        // INICIALIZAÇÃO
-        if (tabelaPrincipal) {
-            // ... (Inicialização e listeners de Propostas/Análise)
+        if (isPropostasPage) {
+            tr.innerHTML = `
+                <td>${proposal.cliente}</td>
+                <td>${proposal.template || '-'}</td>
+                <td>${proposal.data}</td>
+                <td>${proposal.status}</td>
+                <td><button class="btn-detalhes" data-id="${proposal.id}">Baixar pdf</button></td>
+            `;
+        } else if (isAnalisePage) {
+             tr.innerHTML = `
+                <td>${proposal.cliente}</td>
+                <td>${proposal.data}</td>
+                <td>${proposal.status}</td>
+                <td>${proposal.valor || 'R$ 0,00'}</td>
+                <td>${proposal.responsavel || '-'}</td>
+            `;
         }
+        tbody.appendChild(tr);
     }
 
+    function refreshTabela() {
+        if (!tabelaPrincipal) return;
+        const tbody = tabelaPrincipal.querySelector('tbody');
+        tbody.innerHTML = '';
+        proposals.forEach(p => criarLinhaTabela(p));
+        atualizarFiltros();
+        aplicarFiltros();
 
-    // ---------------------------------------------------
-    // 🟦 LÓGICA DA PÁGINA: CLIENTES (Paginação de 6 em 6)
-    // ---------------------------------------------------
-    if (isClientesPage) {
-        
-        // VARIÁVEIS DE CLIENTES
-        const CLIENTS_API_BASE = '/api/clients'; 
-        const pageSize = 6; // *** TAMANHO DE PÁGINA FIXO: 6 USUÁRIOS ***
-
-        let currentPage = 1;
-        let totalPages = 1;
-
-        const tableBody = document.getElementById('clientesTableBody');
-        const paginationControls = document.querySelector('.pagination-controls');
-        const prevButton = document.getElementById('prevPage');
-        const nextPage = document.getElementById('nextPage');
-        const paginationContainer = document.getElementById('paginationContainer');
-        
-        // SELECTORES DE FILTRO INDIVIDUAIS
-        const filtroNome = document.getElementById('filtroNome');
-        const filtroEmail = document.getElementById('filtroEmail');
-        const filtroTelefone = document.getElementById('filtroTelefone');
-        const filtroPlano = document.getElementById('filtroPlano');
-        const filtroTipoTemplate = document.getElementById('filtroTipoTemplate');
-
-
-        // --- FUNÇÃO DE BUSCA DE DADOS (CONEXÃO REAL COM O BACK-END) ---
-        async function fetchClients(page, filters) {
-            
-            const params = new URLSearchParams();
-            params.append('page', page);
-            params.append('size', pageSize);
-
-            if (filters.nome) params.append('name', filters.nome); 
-            if (filters.email) params.append('email', filters.email); 
-            if (filters.telefone) params.append('phone', filters.telefone); 
-            if (filters.plano) params.append('plano', filters.plano);
-            if (filters.tipoTemplate) params.append('templateType', filters.tipoTemplate);
-            
-            const url = `${CLIENTS_API_BASE}?${params.toString()}`;
-            console.log(`Buscando clientes da API: ${url}`);
-            
-            try {
-                // ESTE É O PONTO DE CONEXÃO COM SUA API:
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error(`Erro de rede: ${response.status}`);
-                }
-                const data = await response.json();
-                
-                // O objeto 'data' DEVE ter: { clients: [...], totalPages: N, currentPage: P }
-                return {
-                    clients: data.clients || [],
-                    totalPages: data.totalPages || 1, // Garante que a páginação nunca seja < 1
-                    currentPage: data.currentPage || page
-                };
-                
-            } catch (error) {
-                console.error("Erro ao buscar clientes:", error);
-                return { clients: [], totalPages: 1, currentPage: 1 };
-            }
+        // Adiciona o listener para os botões 'Detalhes' após a tabela ser recriada
+        if (isPropostasPage) {
+            document.querySelectorAll('.btn-detalhes').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const proposalId = parseInt(e.target.dataset.id);
+                    const proposal = proposals.find(p => p.id === proposalId);
+                    if (proposal) {
+                        gerarPdfPropostaIndividual(proposal);
+                    } else {
+                        alert('Dados da proposta não encontrados.');
+                    }
+                });
+            });
         }
+    }
+    
+    // Função de geração de PDF a partir de QUALQUER objeto de dados de proposta
+    function gerarPdfPropostaIndividual(data) {
+        if (typeof window.jspdf === 'undefined') {
+            alert('A biblioteca jsPDF não está carregada. Verifique a tag <script> no HTML.');
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
         
-        // --- FUNÇÕES DE RENDERIZAÇÃO E CONTROLE ---
-        function renderTable(clients) {
-            if (!tableBody) return;
-            tableBody.innerHTML = '';
+        doc.setFontSize(18);
+        doc.text("Proposta de Cliente", 10, 10);
+        doc.setFontSize(12);
+        
+        let y = 20;
+        doc.text(`Cliente: ${data.cliente}`, 10, y); y += 7;
+        doc.text(`E-mail: ${data.email || 'N/A'}`, 10, y); y += 7;
+        doc.text(`Data da Proposta: ${data.data}`, 10, y); y += 7;
+        doc.text(`Status de Validação: ${data.status}`, 10, y); y += 10;
+        doc.text(`Mensagem da Equipe:`, 10, y); y += 5;
+        
+        // Quebra de linha para mensagem longa
+        const splitText = doc.splitTextToSize(data.mensagem || 'N/A', 180);
+        doc.text(splitText, 10, y);
+        
+        doc.save(`proposta_${data.cliente.replace(/\s/g, '_')}_${data.data}.pdf`);
+    }
+
+    // ---------------------------------------------------
+    // 🔵 EVENTOS E LISTENERS
+    // ---------------------------------------------------
+
+    // 1. ABRIR MODAL: Botão "Criar / Exportar Proposta"
+    if (btnCriarProposta) {
+        btnCriarProposta.addEventListener('click', (e) => {
+            e.preventDefault(); 
+            showModal();
+        });
+    }
+
+    // 2. AÇÕES DO MODAL
+    
+    // Botão "Exportar Direto (PDF)"
+    document.addEventListener('click', (e) => {
+        if (e.target.id === 'btnExportarDireto') {
+            e.preventDefault();
             
-            if (!clients || clients.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum cliente ou proposta encontrada.</td></tr>';
+            if (!proposalForm.checkValidity()) {
+                proposalForm.reportValidity();
                 return;
             }
-
-            clients.forEach(client => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${client.nome}</td>
-                    <td>${client.email}</td>
-                    <td>${client.telefone}</td>
-                    <td>${client.plano || '-'}</td>
-                    <td>${client.template || '-'}</td>
-                    <td>${client.status || 'N/A'}</td>
-                `;
-                tableBody.appendChild(row);
-            });
-        }
-
-        function renderPagination() {
-            if (!paginationContainer) return;
-            paginationContainer.innerHTML = '';
             
-            if (totalPages > 1) {
-                // Indicador de Página Atual / Total (para aparecer ao lado dos botões)
-                const pageIndicator = document.createElement('span');
-                pageIndicator.textContent = `Página ${currentPage} de ${totalPages}`;
-                pageIndicator.style.margin = '0 10px';
-                pageIndicator.style.fontWeight = 'bold';
-                paginationContainer.appendChild(pageIndicator); // Adicionado ao container
-
-                // Lógica de numeração de páginas
-                const startPage = Math.max(1, currentPage - 2);
-                const endPage = Math.min(totalPages, currentPage + 2);
-
-                for (let i = startPage; i <= endPage; i++) {
-                    const pageButton = document.createElement('span');
-                    pageButton.classList.add('page-number');
-                    if (i === currentPage) pageButton.classList.add('active');
-                    pageButton.textContent = i;
-                    pageButton.dataset.page = i;
-                    paginationContainer.appendChild(pageButton);
-
-                    pageButton.addEventListener('click', (e) => {
-                        const newPage = parseInt(e.target.dataset.page);
-                        if (newPage !== currentPage) loadClients(newPage);
-                    });
-                }
-            }
+            const newProposalData = coletarDadosDoModal();
+            gerarPdfPropostaIndividual(newProposalData); // Reutilizando a função
+            hideModal();
         }
-
-        function updateControls() {
-            if (!paginationControls || !prevButton || !nextPage) return;
-
-            // *** REQUISITO ATENDIDO: Oculta a paginação se o total de páginas for 1 ou menos. ***
-            if (totalPages > 1) {
-                paginationControls.style.display = 'flex';
-                
-                // Habilita/Desabilita Anterior/Próxima
-                prevButton.disabled = currentPage === 1;
-                nextPage.disabled = currentPage === totalPages;
-            } else {
-                paginationControls.style.display = 'none';
-            }
-        }
-        
-        async function loadClients(page = 1) {
-            // Desabilita e oculta tudo durante o carregamento
-            if (tableBody) tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Carregando dados...</td></tr>';
-            if (paginationControls) paginationControls.style.display = 'none'; 
-
-            const currentFilters = {
-                nome: filtroNome ? filtroNome.value.trim() : '',
-                email: filtroEmail ? filtroEmail.value.trim() : '',
-                telefone: filtroTelefone ? filtroTelefone.value.trim() : '',
-                plano: filtroPlano ? filtroPlano.value : '',
-                tipoTemplate: filtroTipoTemplate ? filtroTipoTemplate.value : ''
-            };
-
-            const data = await fetchClients(page, currentFilters);
+    });
+    
+    // Botão "Salvar Proposta" (Submissão do formulário)
+    if (proposalForm) {
+        proposalForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newProposalData = coletarDadosDoModal();
             
-            // Atribui os valores reais
-            currentPage = data.currentPage;
-            totalPages = data.totalPages; 
+            console.log("Enviando dados para o back-end:", newProposalData);
+            alert(`Proposta de ${newProposalData.cliente} salva com sucesso! (Simulação)`);
 
-            renderTable(data.clients);
-            renderPagination();
-            updateControls();
-        }
-        
-        // --- LISTENERS DE NAVEGAÇÃO E FILTRO ---
-        const reloadOnFilterChange = () => loadClients(1);
-
-        if (prevButton) {
-            prevButton.addEventListener('click', () => {
-                if (currentPage > 1) loadClients(currentPage - 1);
-            });
-        }
-
-        if (nextPage) {
-            nextPage.addEventListener('click', () => {
-                if (currentPage < totalPages) loadClients(currentPage + 1);
-            });
-        }
-        
-        // Listeners de filtro
-        if (filtroNome) filtroNome.addEventListener('input', reloadOnFilterChange);
-        if (filtroEmail) filtroEmail.addEventListener('input', reloadOnFilterChange);
-        if (filtroTelefone) filtroTelefone.addEventListener('input', reloadOnFilterChange);
-        if (filtroPlano) filtroPlano.addEventListener('change', reloadOnFilterChange);
-        if (filtroTipoTemplate) filtroTipoTemplate.addEventListener('change', reloadOnFilterChange);
-
-        // Início da carga da página Clientes
-        loadClients(1);
+            proposals.push(newProposalData);
+            refreshTabela();
+            
+            hideModal();
+        });
     }
+    
+    // Botão "Cancelar" e clique no fundo do modal
+    document.addEventListener('click', (e) => {
+        if (e.target.id === 'btnCancelarModal' || e.target.id === 'proposalModalOverlay') {
+            e.preventDefault();
+            hideModal();
+        }
+    });
+
+    // 3. REMOVIDO: EXPORTAR PDF (Visíveis da Tabela)
+    // O botão btnExportarPDF agora não tem ação no JS.
+
+    // 4. EXPORTAR CSV (Análise) - Lógica da página Análise (Mantida)
+    if (isAnalisePage && btnExportarExcel) {
+        btnExportarExcel.addEventListener('click', () => {
+            // ... (Lógica de exportação CSV aqui)
+            if (!tabelaPrincipal) return;
+            const SEPARADOR = ';';
+            const headers = ['Cliente','Data','Status','Valor','Responsável','Template']; 
+            
+            const rows = proposals.filter(p => {
+                const cliente = filtroCliente ? filtroCliente.value : '';
+                const status = filtroStatus ? filtroStatus.value : '';
+                const matchCliente = cliente === '' || p.cliente === cliente;
+                const matchStatus = status === '' || p.status === status;
+                return matchCliente && matchStatus;
+            });
+
+            const BOM = '\uFEFF'; 
+            const csvData = [headers.join(SEPARADOR)];
+            
+            rows.forEach(proposal => {
+                const cols = [
+                    proposal.cliente, proposal.data, proposal.status, 
+                    proposal.valor || 'R$ 0,00', proposal.responsavel || '-', 
+                    proposal.template || '-'
+                ].map(text => `"${String(text).trim().replace(/"/g, '""')}"`);
+                csvData.push(cols.join(SEPARADOR));
+            });
+
+            const csv = BOM + csvData.join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'analise.csv';
+            a.click();
+            a.remove();
+            alert('Dados da Análise exportados para CSV (Excel).');
+        });
+    }
+
+
+    // ---------------------------------------------------
+    // 🔵 INICIALIZAÇÃO
+    // ---------------------------------------------------
+    if (tabelaPrincipal) {
+        refreshTabela();
+    }
+    
+    // Eventos filtros
+    if (filtroCliente) filtroCliente.addEventListener('change', aplicarFiltros);
+    if (filtroTemplate) filtroTemplate.addEventListener('change', aplicarFiltros);
+    if (filtroStatus) filtroStatus.addEventListener('change', aplicarFiltros);
+
 });
