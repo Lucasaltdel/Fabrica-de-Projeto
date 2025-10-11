@@ -386,4 +386,123 @@ document.addEventListener('DOMContentLoaded', () => {
     if (filtroTemplate) filtroTemplate.addEventListener('change', aplicarFiltros);
     if (filtroStatus) filtroStatus.addEventListener('change', aplicarFiltros);
 
+
+    // ======================================================
+// 🟦 CLIENTES PAGE - Lista, Filtros e Paginação
+// ======================================================
+document.addEventListener('DOMContentLoaded', () => {
+  const isClientesPage = !!document.getElementById('clientesTable');
+  if (!isClientesPage) return;
+
+  // Simulação do array (vem do back-end no futuro)
+  // Deixe vazio, o back-end vai preencher via fetch:
+  let clientes = []; // ← o backend envia algo como [{nome, status, templates, pdfGerado}, ...]
+
+  // Variáveis de UI
+  const tabela = document.getElementById('clientesTable').querySelector('tbody');
+  const filtroNome = document.getElementById('filtroNome');
+  const filtroStatus = document.getElementById('filtroStatus');
+  const filtroTemplates = document.getElementById('filtroTemplates');
+  const filtroPDF = document.getElementById('filtroPDF');
+  const btnAnterior = document.getElementById('btnAnterior');
+  const btnProximo = document.getElementById('btnProximo');
+  const paginaAtualEl = document.getElementById('paginaAtual');
+
+  // Paginação
+  const ITENS_POR_PAGINA = 10;
+  let paginaAtual = 1;
+
+  // 🔹 Carregar clientes do back-end (exemplo de fetch)
+  async function carregarClientes() {
+    try {
+      const resposta = await fetch('/api/clientes'); // endpoint do seu back-end
+      clientes = await resposta.json();
+      renderizarTabela();
+    } catch (err) {
+      console.error('Erro ao buscar clientes:', err);
+      tabela.innerHTML = '<tr><td colspan="4">Erro ao carregar clientes.</td></tr>';
+    }
+  }
+
+  // 🔹 Aplicar filtros
+  function filtrarClientes() {
+    return clientes.filter(c => {
+      const nomeFiltro = filtroNome.value.trim().toLowerCase();
+      const statusFiltro = filtroStatus.value;
+      const templateFiltro = filtroTemplates.value;
+      const pdfFiltro = filtroPDF.value;
+
+      let condNome = !nomeFiltro || c.nome.toLowerCase().includes(nomeFiltro);
+      let condStatus = !statusFiltro || c.status === statusFiltro;
+
+      let condTemplates = true;
+      if (templateFiltro === '0') condTemplates = c.templates === 0;
+      else if (templateFiltro === '1-3') condTemplates = c.templates >= 1 && c.templates <= 3;
+      else if (templateFiltro === '4+') condTemplates = c.templates >= 4;
+
+      let condPDF = !pdfFiltro || (pdfFiltro === 'Sim' ? c.pdfGerado : !c.pdfGerado);
+
+      return condNome && condStatus && condTemplates && condPDF;
+    });
+  }
+
+  // 🔹 Renderizar tabela conforme página atual
+  function renderizarTabela() {
+    const filtrados = filtrarClientes();
+    const totalPaginas = Math.ceil(filtrados.length / ITENS_POR_PAGINA);
+    paginaAtual = Math.min(paginaAtual, totalPaginas || 1);
+
+    const inicio = (paginaAtual - 1) * ITENS_POR_PAGINA;
+    const pagina = filtrados.slice(inicio, inicio + ITENS_POR_PAGINA);
+
+    tabela.innerHTML = '';
+
+    if (pagina.length === 0) {
+      tabela.innerHTML = '<tr><td colspan="4">Nenhum cliente encontrado.</td></tr>';
+    } else {
+      pagina.forEach(c => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${c.nome}</td>
+          <td>${c.status}</td>
+          <td>${c.templates}</td>
+          <td>${c.pdfGerado ? 'Sim' : 'Não'}</td>
+        `;
+        tabela.appendChild(tr);
+      });
+    }
+
+    paginaAtualEl.textContent = `${paginaAtual} / ${totalPaginas || 1}`;
+    btnAnterior.disabled = paginaAtual === 1;
+    btnProximo.disabled = paginaAtual >= totalPaginas;
+  }
+
+  // 🔹 Paginação
+  btnAnterior.addEventListener('click', () => {
+    if (paginaAtual > 1) {
+      paginaAtual--;
+      renderizarTabela();
+    }
+  });
+  btnProximo.addEventListener('click', () => {
+    const filtrados = filtrarClientes();
+    const totalPaginas = Math.ceil(filtrados.length / ITENS_POR_PAGINA);
+    if (paginaAtual < totalPaginas) {
+      paginaAtual++;
+      renderizarTabela();
+    }
+  });
+
+  // 🔹 Filtros
+  [filtroNome, filtroStatus, filtroTemplates, filtroPDF].forEach(el => {
+    el.addEventListener('input', () => {
+      paginaAtual = 1;
+      renderizarTabela();
+    });
+  });
+
+  // Inicializa
+  carregarClientes();
+});
+
 });

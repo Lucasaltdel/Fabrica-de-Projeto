@@ -1141,4 +1141,158 @@ header .user {
       padding: 15px;
     }
   }
-  
+
+  /* =====================================
+   CLIENTES
+   ===================================== */
+
+.clientes-tabela {
+    width: 90%;
+    max-width: 1200px;
+    margin: 100px auto 50px auto;
+    background-color: #fff;
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    color: #000;
+}
+
+.clientes-tabela h2 {
+    margin-bottom: 20px;
+    font-size: 1.6rem;
+    color: #3115cc;
+    text-align: center;
+}
+
+/* 🔹 FILTROS */
+.clientes-filtros {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 25px;
+}
+
+.clientes-filtros input[type="text"],
+.clientes-filtros select {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 160px;
+}
+
+.clientes-filtros input:focus,
+.clientes-filtros select:focus {
+    border-color: #3115cc;
+    box-shadow: 0 0 8px rgba(49,21,204,0.4);
+}
+
+/* 🔹 TABELA */
+.clientes-table {
+    overflow-x: auto;
+}
+
+.clientes-table table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 700px;
+}
+
+.clientes-table th,
+.clientes-table td {
+    padding: 14px 12px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+    font-size: 1rem;
+}
+
+.clientes-table th {
+    background-color: #f0f0f0;
+    font-weight: bold;
+    color: #3115cc;
+}
+
+.clientes-table tr:nth-child(even) {
+    background-color: rgba(49,21,204,0.05);
+}
+
+.clientes-table tr:hover {
+    background-color: rgba(49,21,204,0.15);
+    cursor: pointer;
+}
+
+/* 🔹 STATUS BADGES */
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: #fff;
+    text-align: center;
+}
+
+.status-ativo { background-color: #28a745; }
+.status-inativo { background-color: #dc3545; }
+.status-pendente { background-color: #ffc107; color: #000; }
+
+/* 🔹 PDF STATUS */
+.pdf-gerado {
+    color: #28a745;
+    font-weight: bold;
+}
+.pdf-nao-gerado {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* 🔹 PAGINAÇÃO */
+.clientes-paginacao {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 25px;
+}
+
+.clientes-paginacao button {
+    padding: 8px 14px;
+    background: #3115cc;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+    font-weight: bold;
+}
+
+.clientes-paginacao button:hover {
+    background: #24108f;
+    transform: scale(1.05);
+}
+
+.clientes-paginacao button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 🔹 BOTÃO VER DETALHES */
+.btn-detalhes {
+    display: inline-block;
+    padding: 8px 14px;
+    background: #3115cc;
+    color: #fff;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.btn-detalhes:hover {
+    background: #24108f;
+    transform: scale(1.05);
+}
