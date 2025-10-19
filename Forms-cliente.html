@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preencha Seu Formulário</title>
+    <link rel="stylesheet" href="style.css"> 
+</head>
+<body>
+    <div class="form-container">
+        <h2>Solicitação de Proposta</h2>
+        <form id="clientFormSubmission">
+            
+            <div class="form-group">
+                <label for="leadName">Seu Nome Completo:</label>
+                <input type="text" id="leadName" name="leadName" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="contactEmail">Seu Melhor Email:</label>
+                <input type="email" id="contactEmail" name="contactEmail" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="companyName">Nome da Empresa:</label>
+                <input type="text" id="companyName" name="companyName" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="serviceType">Serviço de Interesse:</label>
+                <select id="serviceType" name="serviceType" required>
+                    <option value="">Selecione um serviço</option>
+                    <option value="Marketing">Marketing Digital</option>
+                    <option value="Consultoria">Consultoria Financeira</option>
+                    <option value="Desenvolvimento">Desenvolvimento de Software</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="details">Detalhes Adicionais:</label>
+                <textarea id="details" name="details" rows="4"></textarea>
+            </div>
+
+            <input type="hidden" id="templateId" name="templateId" value="1"> 
+            
+            <button type="submit">Enviar Solicitação</button>
+            <p id="responseMessage" class="success-message" style="display: none;"></p>
+        </form>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

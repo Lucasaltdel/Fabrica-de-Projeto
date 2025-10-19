@@ -45,4 +45,59 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+    document.addEventListener('DOMContentLoaded', () => {
+    // URL base da sua API. AJUSTE a porta se o seu Back-end estiver rodando em outra!
+    const API_BASE_URL = 'https://localhost:5001/api/auth'; 
+    const loginForm = document.getElementById('loginForm');
+    const errorMessageEl = document.getElementById('error-message');
+
+    // Função para alternar a visibilidade da senha (do seu HTML)
+    const togglePassword = document.getElementById('togglePassword');
+    if (togglePassword) {
+        togglePassword.addEventListener('click', function () {
+            const passwordInput = document.getElementById('password');
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.classList.toggle('fa-eye-slash');
+        });
+    }
+
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorMessageEl.textContent = ''; // Limpa mensagens anteriores
+
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password }),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // SUCESSO NO LOGIN
+                const token = result.token;
+                
+                // 1. Armazena o Token JWT no armazenamento local do navegador
+                localStorage.setItem('jwtToken', token);
+
+                // 2. Redireciona o usuário para a página principal
+                window.location.href = 'Clientes.html'; 
+            } else {
+                // FALHA NO LOGIN (ex: Credenciais inválidas)
+                errorMessageEl.textContent = result.message || 'Falha ao fazer login. Verifique suas credenciais.';
+            }
+
+        } catch (error) {
+            console.error('Erro de rede ou servidor:', error);
+            errorMessageEl.textContent = 'Erro ao conectar com o servidor. Tente novamente mais tarde.';
+        }
+    });
+});
 });

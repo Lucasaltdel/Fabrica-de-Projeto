@@ -62,4 +62,89 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+    document.addEventListener('DOMContentLoaded', () => {
+    // URL base da sua API. AJUSTE a porta se o seu Back-end estiver rodando em outra!
+    const API_BASE_URL = 'https://localhost:5001/api/auth'; 
+    const registerForm = document.getElementById('registerForm');
+    
+    // Adicione uma área para mensagens no seu Cadastro.html, se ainda não tiver:
+    // <p id="register-message" class="success-message"></p>
+    const registerMessageEl = document.getElementById('register-message'); 
+
+    // Função para alternar a visibilidade da senha (do seu HTML)
+    const togglePasswordVisibility = (toggleId, inputId) => {
+        const toggleEl = document.getElementById(toggleId);
+        if (toggleEl) {
+            toggleEl.addEventListener('click', function () {
+                const input = document.getElementById(inputId);
+                const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                input.setAttribute('type', type);
+                this.classList.toggle('fa-eye-slash');
+            });
+        }
+    };
+    togglePasswordVisibility('toggleRegPassword', 'reg-password');
+    togglePasswordVisibility('toggleRegConfirmPassword', 'reg-confirm-password');
+
+    registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (registerMessageEl) registerMessageEl.textContent = '';
+        if (registerMessageEl) registerMessageEl.style.color = 'initial';
+
+        const username = document.getElementById('reg-username').value;
+        const email = document.getElementById('reg-email').value;
+        const password = document.getElementById('reg-password').value;
+        const confirmPassword = document.getElementById('reg-confirm-password').value;
+
+        if (password !== confirmPassword) {
+            if (registerMessageEl) {
+                registerMessageEl.textContent = 'Erro: As senhas não coincidem!';
+                registerMessageEl.style.color = 'red';
+                registerMessageEl.style.display = 'block';
+            }
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, email, password }),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // SUCESSO NO CADASTRO
+                if (registerMessageEl) {
+                    registerMessageEl.textContent = result.message || 'Cadastro realizado com sucesso!';
+                    registerMessageEl.style.color = 'green';
+                    registerForm.reset(); // Limpa o formulário
+                    
+                    // Opcional: Redireciona após 2 segundos
+                    setTimeout(() => {
+                         window.location.href = 'Login.html';
+                    }, 2000); 
+                }
+            } else {
+                // FALHA NO CADASTRO (ex: Usuário já existe)
+                if (registerMessageEl) {
+                    registerMessageEl.textContent = result.message || 'Erro ao cadastrar. Tente outro nome de usuário/email.';
+                    registerMessageEl.style.color = 'red';
+                }
+            }
+            if (registerMessageEl) registerMessageEl.style.display = 'block';
+
+        } catch (error) {
+            console.error('Erro de rede ou servidor:', error);
+            if (registerMessageEl) {
+                registerMessageEl.textContent = 'Erro ao conectar com o servidor. Verifique se o backend está rodando.';
+                registerMessageEl.style.color = 'red';
+                registerMessageEl.style.display = 'block';
+            }
+        }
+    });
+});
 });
