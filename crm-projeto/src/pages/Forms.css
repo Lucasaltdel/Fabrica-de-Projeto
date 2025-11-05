@@ -1,0 +1,30 @@
+.corpo{ 
+    border: 1px solid #ffffff;
+    border-radius: 10px;
+    box-shadow: 1px 1px 10px rgba(159, 159, 159, 0.5);
+    padding: 20px;  
+    margin: 10px;
+ }
+ .corpo h1 {
+    color: #606060;
+    font-family: 'roboto', sans-serif;
+ }
+
+ .corpo input {
+    padding: 12px 10px;
+    width: 95%;
+    border: 2px solid #a9a9a99a;
+    box-shadow: 1px 1px 5px rgba(221, 221, 221, 0.3);
+    border-radius: 10px;
+ }
+
+ .corpo button {
+    padding: 6px 20px 10px 20px;
+    width: 250px;
+    border: none;
+    border-radius: 10px;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 24px;
+    text-align: left;
+ }

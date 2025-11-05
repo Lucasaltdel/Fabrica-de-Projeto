@@ -1,5 +1,5 @@
 {
   "dependencies": {
-    "styled-components": "^6.1.19"
+    "axios": "^1.13.2"
   }
 }
