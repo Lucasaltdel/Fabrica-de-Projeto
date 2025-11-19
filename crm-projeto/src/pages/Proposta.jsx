@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from "react";
 import api from "../services/api";
 import aiApi from "../services/aiApi";
+import { jsPDF } from "jspdf";
 import { useLocation } from "react-router-dom";
 
 const PropostaPage = () => {
   const [leadId, setLeadId] = useState("");
   const [promptExtra, setPromptExtra] = useState("");
   const [slides, setSlides] = useState("");
+  const [leadsList, setLeadsList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState("");
   const [pdfUrl, setPdfUrl] = useState(null);
   const [validado, setValidado] = useState(false);
+  const [leadData, setLeadData] = useState(null);
 
   const location = useLocation();
 
@@ -20,6 +23,25 @@ const PropostaPage = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Busca lista de leads para seleção
+  useEffect(() => {
+    const fetchLeads = async () => {
+      try {
+        const res = await api.get('/leads');
+        setLeadsList(res.data || []);
+      } catch (e) {
+        console.warn('Não foi possível buscar lista de leads', e);
+      }
+    };
+    fetchLeads();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+    };
+  }, [pdfUrl]);
 
   const gerarSlides = async () => {
     setLoading(true);
@@ -32,6 +54,7 @@ const PropostaPage = () => {
       // 1️⃣ Busca o lead completo (usa cliente centralizado)
       const leadResponse = await api.get(`/leads/${leadId}`);
       const lead = leadResponse.data;
+      setLeadData(lead);
 
       // 2️⃣ Envia o lead + prompt extra para o backend
       const iaResponse = await aiApi.post(`/gerar-proposta`, {
@@ -39,10 +62,17 @@ const PropostaPage = () => {
         promptExtra: promptExtra.trim(),
       });
 
-      // 3️⃣ Salva os slides e o PDF (caso venha)
-      setSlides(iaResponse.data.slides);
+      // 3️⃣ Salva os slides e gera PDF localmente
+      const generatedSlides = iaResponse.data.slides;
+      setSlides(generatedSlides);
+      // Se backend retornar pdfUrl, usa; caso contrário gera localmente
       if (iaResponse.data.pdfUrl) {
+        if (pdfUrl) URL.revokeObjectURL(pdfUrl);
         setPdfUrl(iaResponse.data.pdfUrl);
+      } else {
+        const url = await gerarPdfLocal(lead, generatedSlides);
+        if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+        setPdfUrl(url);
       }
     } catch (err) {
       console.error("Erro:", err);
@@ -59,107 +89,206 @@ const PropostaPage = () => {
     alert("Proposta validada com sucesso!");
   };
 
+  const salvarPropostaNoCliente = async () => {
+    if (!leadId) return alert('Selecione um lead antes de salvar.');
+    if (!slides && !pdfUrl) return alert('Gere a proposta antes de salvar.');
+    try {
+      const payload = { slides, pdfUrl };
+      await api.post(`/leads/${leadId}/proposta`, payload);
+      alert('Proposta enviada para o backend e vinculada ao cliente.');
+    } catch (e) {
+      console.error('Erro ao salvar proposta:', e);
+      if (e?.response?.status === 404) {
+        alert('Endpoint de salvar proposta não encontrado no backend. É necessário criar POST /leads/{id}/proposta.');
+      } else {
+        alert('Falha ao salvar proposta. Verifique o servidor.');
+      }
+    }
+  };
+
+  const toDataURL = (blob) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+
+  const gerarPdfLocal = async (lead, slidesText) => {
+    try {
+      const doc = new jsPDF({ unit: "mm", format: "a4" });
+      const margin = 15;
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const maxWidth = pageWidth - margin * 2;
+      let y = 20;
+
+      // Tenta carregar logo opcional em /logo.png ou /assets/logo.png
+      let logoDataUrl = null;
+      try {
+        const logoPaths = ["/logo.png", "/assets/logo.png", "/public/logo.png"];
+        for (const p of logoPaths) {
+          try {
+            const res = await fetch(p);
+            if (!res.ok) continue;
+            const blob = await res.blob();
+            logoDataUrl = await toDataURL(blob);
+            break;
+          } catch {
+            // ignore and try next
+          }
+        }
+      } catch {
+        logoDataUrl = null;
+      }
+
+      // Header com estilo
+      if (logoDataUrl) {
+        try {
+          doc.addImage(logoDataUrl, 'PNG', margin, 8, 30, 30);
+        } catch (e) {
+          // falha ao adicionar logo não crítica
+          console.warn('Não foi possível adicionar logo no PDF', e);
+        }
+      }
+
+      doc.setFontSize(18);
+      doc.setTextColor('#1f2937');
+      const titleX = logoDataUrl ? margin + 36 : margin;
+      doc.text(`Proposta Comercial`, titleX, 20);
+      doc.setFontSize(11);
+      doc.setTextColor('#374151');
+      doc.text(`Cliente: ${lead?.clientName || '-'}`, titleX, 26);
+      doc.text(`Empresa: ${lead?.company || '-'}`, titleX, 32);
+      y = 42;
+
+      // Linha separadora
+      doc.setDrawColor(200);
+      doc.setLineWidth(0.5);
+      doc.line(margin, y - 6, pageWidth - margin, y - 6);
+
+      // Informação adicional
+      doc.setFontSize(10);
+      doc.text(`Contato: ${lead?.email || '-'}    Telefone: ${lead?.phone || '-'}`, margin, y);
+      y += 8;
+      if (lead?.data) {
+        doc.text(`Data: ${lead.data}`, margin, y);
+        y += 8;
+      }
+
+      // Quebra em seções: divide slidesText por quebras de linha duplas para tópicos
+      const sections = slidesText.split('\n\n').map(s => s.trim()).filter(Boolean);
+      doc.setFontSize(12);
+
+      for (const section of sections) {
+        const header = section.split('\n')[0];
+        const body = section.split('\n').slice(1).join('\n') || '';
+
+        // título da seção
+        doc.setFontSize(13);
+        doc.setTextColor('#0f172a');
+        const headerLines = doc.splitTextToSize(header, maxWidth);
+        for (const hl of headerLines) {
+          if (y + 8 > pageHeight - margin) {
+            doc.addPage();
+            y = margin;
+          }
+          doc.text(hl, margin, y);
+          y += 7;
+        }
+
+        // corpo
+        doc.setFontSize(11);
+        doc.setTextColor('#374151');
+        const bodyLines = doc.splitTextToSize(body || header, maxWidth);
+        for (const bl of bodyLines) {
+          if (y + 7 > pageHeight - margin) {
+            doc.addPage();
+            y = margin;
+          }
+          doc.text(bl, margin, y);
+          y += 6.5;
+        }
+
+        y += 4; // espaço entre seções
+      }
+
+      // Rodapé
+      const footerText = 'Proposta gerada automaticamente - revisar valores e condições.';
+      doc.setFontSize(9);
+      doc.setTextColor('#6b7280');
+      doc.text(footerText, margin, pageHeight - 10);
+
+      const blob = doc.output('blob');
+      const url = URL.createObjectURL(blob);
+      return url;
+    } catch (e) {
+      console.error('Erro ao gerar PDF local:', e);
+      return null;
+    }
+  };
+
   return (
-    <div
-      style={{
-        padding: "40px",
-        maxWidth: "850px",
-        margin: "auto",
-        fontFamily: "Arial, sans-serif",
-      }}
-    >
-      <h1 style={{ textAlign: "center", color: "#333" }}>
-        Gerar Proposta Automática
-      </h1>
-      <p style={{ textAlign: "center", color: "#666" }}>
-        Informe o ID do lead e adicione instruções extras para personalizar a
-        proposta antes de gerar.
-      </p>
+    <div style={{ padding: '20px', maxWidth: '900px', margin: '0 auto' }}>
 
-      {/* Campos principais */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "15px",
-          marginTop: "25px",
-          backgroundColor: "#fafafa",
-          padding: "20px",
-          borderRadius: "10px",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-        }}
-      >
-        <div>
-          <label
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <label style={{ marginBottom: 6 }}>Selecionar Lead</label>
+            <select
+              value={leadId}
+              onChange={async (e) => {
+                const id = e.target.value;
+                setLeadId(id);
+                if (id) {
+                  try {
+                    const res = await api.get(`/leads/${id}`);
+                    setLeadData(res.data);
+                  } catch (err) {
+                    console.warn('Erro ao buscar lead selecionado', err);
+                  }
+                } else {
+                  setLeadData(null);
+                }
+              }}
+              style={{ padding: 8, borderRadius: 6 }}
+            >
+              <option value="">-- selecione --</option>
+              {leadsList.map((l) => (
+                <option key={l.id} value={l.id}>{`${l.id} - ${l.clientName}`}</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ flex: 1 }}>
+            <label style={{ marginBottom: 6 }}>Prompt (opcional)</label>
+            <input
+              value={promptExtra}
+              onChange={(e) => setPromptExtra(e.target.value)}
+              placeholder="Adicione instruções adicionais para a IA"
+              style={{ width: '100%', padding: 8, borderRadius: 6 }}
+            />
+          </div>
+
+          <button
+            onClick={gerarSlides}
+            disabled={!leadId || loading}
             style={{
-              fontWeight: "bold",
-              display: "block",
-              marginBottom: "6px",
-            }}
-          >
-            ID do Lead
-          </label>
-          <input
-            type="number"
-            value={leadId}
-            onChange={(e) => setLeadId(e.target.value)}
-            placeholder="ex: 3"
-            style={{
-              width: "100%",
-              padding: "10px",
-              fontSize: "16px",
+              padding: "12px 18px",
+              backgroundColor: "#007BFF",
+              color: "white",
+              border: "none",
+              cursor: "pointer",
               borderRadius: "6px",
-              border: "1px solid #ccc",
-            }}
-          />
-        </div>
-
-        <div>
-          <label
-            style={{
               fontWeight: "bold",
-              display: "block",
-              marginBottom: "6px",
+              fontSize: "14px",
+              transition: "background 0.3s",
             }}
+            onMouseOver={(e) => (e.target.style.backgroundColor = "#0069d9")}
+            onMouseOut={(e) => (e.target.style.backgroundColor = "#007BFF")}
           >
-            Instruções adicionais (Prompt extra)
-          </label>
-          <textarea
-            value={promptExtra}
-            onChange={(e) => setPromptExtra(e.target.value)}
-            placeholder="Exemplo: use um tom mais profissional e destaque benefícios técnicos."
-            rows="4"
-            style={{
-              width: "100%",
-              padding: "10px",
-              fontSize: "15px",
-              borderRadius: "6px",
-              border: "1px solid #ccc",
-              resize: "vertical",
-            }}
-          />
+            {loading ? "Gerando..." : "Gerar Proposta"}
+          </button>
         </div>
-
-        <button
-          onClick={gerarSlides}
-          disabled={!leadId || loading}
-          style={{
-            padding: "12px",
-            backgroundColor: "#007BFF",
-            color: "white",
-            border: "none",
-            cursor: "pointer",
-            borderRadius: "6px",
-            fontWeight: "bold",
-            fontSize: "16px",
-            transition: "background 0.3s",
-          }}
-          onMouseOver={(e) => (e.target.style.backgroundColor = "#0069d9")}
-          onMouseOut={(e) => (e.target.style.backgroundColor = "#007BFF")}
-        >
-          {loading ? "Gerando..." : "Gerar Proposta"}
-        </button>
-      </div>
 
       {erro && (
         <p style={{ color: "red", marginTop: "20px", textAlign: "center" }}>
@@ -230,6 +359,19 @@ const PropostaPage = () => {
                 >
                   Confirmar Validação
                 </button>
+                <button
+                  onClick={salvarPropostaNoCliente}
+                  style={{
+                    padding: "10px 20px",
+                    backgroundColor: "#6f42c1",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Salvar Proposta no Cliente
+                </button>
 
                 <button
                   onClick={gerarSlides}
@@ -243,6 +385,70 @@ const PropostaPage = () => {
                   }}
                 >
                   Gerar Novamente
+                </button>
+
+                <button
+                  onClick={() => {
+                    // Baixa PDF gerado localmente
+                    try {
+                      if (leadData && slides) {
+                        const doc = new jsPDF({ unit: "mm", format: "a4" });
+                        const margin = 15;
+                        const pageWidth = doc.internal.pageSize.getWidth();
+                        const maxWidth = pageWidth - margin * 2;
+                        let y = 20;
+
+                        doc.setFontSize(16);
+                        doc.text(`Proposta - ${leadData.clientName || "Cliente"}`, margin, y);
+                        y += 8;
+                        doc.setFontSize(11);
+                        doc.text(`Empresa: ${leadData.company || "-"}`, margin, y);
+                        y += 6;
+                        doc.text(`Contato: ${leadData.email || "-"} | ${leadData.phone || "-"}`, margin, y);
+                        y += 8;
+                        doc.setLineWidth(0.5);
+                        doc.line(margin, y, pageWidth - margin, y);
+                        y += 8;
+
+                        const lines = doc.splitTextToSize(slides, maxWidth);
+                        const lineHeight = 7;
+                        for (let i = 0; i < lines.length; i++) {
+                          if (y + lineHeight > doc.internal.pageSize.getHeight() - margin) {
+                            doc.addPage();
+                            y = margin;
+                          }
+                          doc.text(lines[i], margin, y);
+                          y += lineHeight;
+                        }
+
+                        doc.save(`proposta_${leadData.clientName || leadId}.pdf`);
+                      } else if (pdfUrl) {
+                        // Se for URL remoto, faz download via fetch
+                        fetch(pdfUrl)
+                          .then((r) => r.blob())
+                          .then((blob) => {
+                            const link = document.createElement('a');
+                            link.href = URL.createObjectURL(blob);
+                            link.download = `proposta_${leadId}.pdf`;
+                            document.body.appendChild(link);
+                            link.click();
+                            link.remove();
+                          });
+                      }
+                    } catch (e) {
+                      console.error('Erro ao baixar PDF:', e);
+                    }
+                  }}
+                  style={{
+                    padding: "10px 20px",
+                    backgroundColor: "#2196f3",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Baixar PDF
                 </button>
               </div>
 
