@@ -1,0 +1,43 @@
+{
+  "leads": [
+    {
+      "id": 1,
+      "clientName": "Giovanna Gonçalves",
+      "email": "giovanna@example.com",
+      "phone": "(11) 98888-7777",
+      "company": "Tech Vision",
+      "message": "Gostaria de saber mais sobre o sistema.",
+      "proposta": {
+        "servico": "Desenvolvimento de Software",
+        "data": "2024-07-15",
+        "valor": 15000
+      }
+    },
+    {
+      "id": 2,
+      "clientName": "Lucas Ferreira",
+      "email": "lucasf@example.com",
+      "phone": "(21) 97777-6666",
+      "company": "DevLabs",
+      "message": "Preciso de uma proposta comercial.",
+      "proposta": {
+        "servico": "Consultoria em TI",
+        "data": "2024-07-20",
+        "valor": 8000
+      }
+    },
+    {
+      "id": 3,
+      "clientName": "Marina Costa",
+      "email": "marina.costa@example.com",
+      "phone": "(31) 98888-2222",
+      "company": "SoftWave",
+      "message": "Quero marcar uma reunião sobre integração.",
+      "proposta": {
+        "servico": "Integração de Sistemas",
+        "data": "2024-07-25",
+        "valor": 12000
+      }
+    }
+  ]
+}
