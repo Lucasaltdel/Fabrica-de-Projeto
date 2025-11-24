@@ -68,15 +68,71 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+// Desabilitar redirecionamento HTTPS em desenvolvimento para evitar problemas
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseCors("PermitirTodas");
+
+app.UseAuthorization(); // Adicionar UseAuthorization é uma boa prática
+
 app.MapControllers();
 
 // ==================== MIGRAÇÕES AUTOMÁTICAS ====================
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    dbContext.Database.Migrate(); // Aplica migrations automaticamente
+    try
+    {
+        dbContext.Database.Migrate(); // Aplica migrations automaticamente
+    }
+    catch (System.InvalidOperationException ex)
+    {
+        // Se houver pending model changes (sem dotnet-ef), continuamos com ajustes manuais
+        Console.WriteLine("Aviso: migração automática falhou: " + ex.Message);
+    }
+
+    // Garantia extra para ambientes sem dotnet-ef: adiciona colunas necessárias
+    try
+    {
+        var conn = dbContext.Database.GetDbConnection();
+        conn.Open();
+        using (var cmd = conn.CreateCommand())
+        {
+            cmd.CommandText = "PRAGMA table_info('Propostas');";
+            var cols = new System.Collections.Generic.List<string>();
+            using (var reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    cols.Add(reader.GetString(1));
+                }
+            }
+
+            if (!cols.Contains("Slides"))
+            {
+                cmd.CommandText = "ALTER TABLE Propostas ADD COLUMN Slides TEXT;";
+                cmd.ExecuteNonQuery();
+            }
+            if (!cols.Contains("PdfUrl"))
+            {
+                cmd.CommandText = "ALTER TABLE Propostas ADD COLUMN PdfUrl TEXT;";
+                cmd.ExecuteNonQuery();
+            }
+            if (!cols.Contains("ClienteId"))
+            {
+                cmd.CommandText = "ALTER TABLE Propostas ADD COLUMN ClienteId INTEGER DEFAULT 0;";
+                cmd.ExecuteNonQuery();
+            }
+        }
+        conn.Close();
+    }
+    catch (System.Exception ex)
+    {
+        // Se algo falhar aqui, não interrompe a aplicação — logs para diagnóstico
+        Console.WriteLine("Aviso: não foi possível aplicar alterações manuais na tabela Propostas: " + ex.Message);
+    }
 }
 
 // ==================== INICIALIZAÇÃO ====================

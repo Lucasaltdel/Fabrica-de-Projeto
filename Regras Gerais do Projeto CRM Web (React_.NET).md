@@ -1,0 +1,51 @@
+# Regras Gerais do Projeto CRM Web (React/.NET)
+
+Este documento estabelece as regras de estrutura, estilo e comportamento desejado para o desenvolvimento e manutenção do projeto de CRM Web, servindo como guia para desenvolvedores e ferramentas de assistência de código (como o Cursor).
+
+## Estrutura do Projeto
+
+| Componente | Localização | Tecnologia | Observações |
+| :--- | :--- | :--- | :--- |
+| **Frontend (React/Vite)** | `Fabrica-de-Projeto-main/crm-projeto/` | React 19, Vite, Axios, Material UI | |
+| **Componentes Reutilizáveis** | `crm-projeto/src/components/` | React Components | Para elementos menores e reutilizáveis (botões, cards, inputs). |
+| **Páginas/Views** | `crm-projeto/src/pages/` | React Components | Para telas completas da aplicação (Dashboard, Clientes, Forms). |
+| **Serviços de API** | `crm-projeto/src/services/` | JavaScript/Axios | Módulos para encapsular chamadas à API (ex: `api.js`, `clienteService.js`). |
+| **Backend (API)** | `Fabrica-de-Projeto-main/backend/` | .NET 8, C#, Entity Framework Core | |
+| **Controladores** | `backend/Api/Controllers/` | C# Classes | Responsáveis por receber requisições HTTP e retornar respostas. |
+| **Lógica de Negócio/Serviços** | `backend/Application/Services/` ou `backend/Domain/` | C# Classes | Onde a lógica de negócio deve residir (se não estiver já em `Domain`). |
+| **Entidades/Modelos** | `backend/Domain/Entities/` | C# Classes | Representação dos objetos de negócio e tabelas do banco. |
+
+## Comportamento Desejado da Ferramenta de Assistência (Cursor)
+
+| Regra | Descrição |
+| :--- | :--- |
+| **Padrão React** | Ao sugerir alterações em arquivos React (`.jsx`, `.js`), **manter o padrão de Componentes Funcionais e Hooks** (`useState`, `useEffect`, etc.) quando já existente. |
+| **Nomenclatura de Variáveis** | **Não renomear variáveis, funções ou classes importantes** sem um motivo claro e documentado. Manter a consistência da nomenclatura em **Português** (conforme o padrão do projeto). |
+| **Dependências** | **Não criar novas dependências** (`npm install` ou pacotes NuGet) sem a confirmação explícita do desenvolvedor. |
+| **Consistência Axios** | Manter as chamadas Axios consistentes com o padrão já usado (`src/services/api.js`), utilizando caminhos relativos e o cliente `api` configurado. |
+| **Contratos de Dados** | **Manter os mesmos contratos (modelos de dados)** entre o Frontend (estrutura dos objetos JavaScript) e o Backend (Classes C# em `Domain/Entities/`). |
+| **Lógica Assíncrona** | Toda nova função que fizer requisições de rede (API) deve seguir o padrão **`async/await` e `try/catch`** para tratamento de erros. |
+
+## Integração Front-Backend
+
+| Aspecto | Detalhe |
+| :--- | :--- |
+| **URL da API (Desenvolvimento)** | A API roda localmente em `http://localhost:5000` (conforme configurado no `.env`). |
+| **Endpoints** | O frontend se comunica com endpoints REST, como `/leads`, `/api/Clientes`, `/api/Propostas`, etc. |
+| **CORS** | O Backend já está configurado com CORS para permitir requisições do frontend. |
+| **Tratamento de Erros** | O tratamento de erros no frontend deve ser robusto, exibindo mensagens amigáveis ao usuário em caso de falha na comunicação com a API. |
+
+## Estilo do Código
+
+| Componente | Padrão de Nomenclatura | Estilo |
+| :--- | :--- | :--- |
+| **Geral** | Utilizar sempre **nomes em português** para variáveis, funções, classes e campos do banco de dados. | |
+| **Backend (C#)** | **PascalCase** para classes, métodos e propriedades públicas. **camelCase** para variáveis locais e parâmetros. | Seguir as convenções do C# e do .NET. |
+| **Frontend (React)** | **PascalCase** para nomes de componentes (ex: `ClientesPage`, `TaskCard`). **camelCase** para variáveis e funções JavaScript. | **CSS:** Preferir o uso de arquivos CSS dedicados por componente ou classes utilitárias (como as do Material UI) para estilização. |
+
+## Restrições
+
+*   **Não apagar código existente** sem antes explicar o impacto e garantir que não há regressão de funcionalidade.
+*   **Não alterar estruturas de banco de dados** (classes em `Domain/Entities/` ou migrações) sem aviso prévio e a criação de uma nova migração.
+*   **Não alterar o ambiente de build** (arquivos `vite.config.js`, `package.json` do frontend, ou arquivos `.csproj`, `.sln` do .NET) sem confirmação.
+*   **Não introduzir lógica de negócio complexa** diretamente nos Controladores do Backend; a lógica deve ser delegada a classes de Serviço ou Domínio.

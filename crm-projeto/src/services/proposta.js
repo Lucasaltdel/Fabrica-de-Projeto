@@ -1,7 +1,7 @@
-export default getProposta();
+import api from "./api";
 
-{
-    return await api.get("/Propostas")
+async function getProposta() {
+    return await api.get("/api/Propostas")
       .then((response) => {
         return response.data;
       })
@@ -9,8 +9,9 @@ export default getProposta();
         console.error("Erro ao buscar os dados:", error);
         return [];
       });
-
 }
+
+export default getProposta;
 
 
 

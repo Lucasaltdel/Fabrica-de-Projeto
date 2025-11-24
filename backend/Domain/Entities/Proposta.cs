@@ -29,6 +29,21 @@ namespace ProjetoApiPT.Domain.Entities
         public DateTime DataProposta { get; set; }
 
         /// <summary>
+        /// Identificador do cliente associado a esta proposta (chave estrangeira).
+        /// </summary>
+        public int ClienteId { get; set; }
+
+        /// <summary>
+        /// Texto dos slides/conteúdo gerado para a proposta (ex.: texto retornado pela IA).
+        /// </summary>
+        public string? Slides { get; set; }
+
+        /// <summary>
+        /// URL do PDF gerado (pode ser local ou remoto). Pode ser null se ainda não gerado.
+        /// </summary>
+        public string? PdfUrl { get; set; }
+
+        /// <summary>
         /// Status da validação da Proposta (ex: Pendente, Aprovada, Rejeitada). Não pode ser nulo.
         /// </summary>
         public string StatusValidacao { get; set; } = null!;

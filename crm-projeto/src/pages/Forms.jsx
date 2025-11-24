@@ -29,7 +29,7 @@ const FormsPage = () => {
       renderCell: () => <FaRegUserCircle size={22} color="#555" />,
     },
     {
-      field: "clientName",
+      field: "nome",
       headerName: "Nome do Cliente",
       flex: 1,
       minWidth: 200,
@@ -47,13 +47,7 @@ const FormsPage = () => {
       minWidth: 150,
     },
     {
-      field: "company",
-      headerName: "Empresa",
-      flex: 1,
-      minWidth: 180,
-    },
-    {
-      field: "message",
+      field: "status", // Alterado para exibir o status do cliente
       headerName: "Mensagem",
       flex: 2,
       minWidth: 250,
@@ -85,12 +79,13 @@ const FormsPage = () => {
   // BUSCA OS DADOS DA API FAKE (json-server)
   useEffect(() => {
     setIsLoading(true);
-    api
-      .get(`/leads`)
+    // MUDANÇA: Buscar da API real de Clientes
+    api.get(`/api/Clientes`)
       .then((response) => {
         const dataWithIds = response.data.map((row, index) => ({
           ...row,
           id: row.id || index + 1,
+          phone: row.phone || "N/A", // Adiciona fallback para campos que podem não existir
         }));
         setAllRows(dataWithIds);
         setFilteredRows(dataWithIds);
@@ -117,7 +112,7 @@ const FormsPage = () => {
 
     const lowerCaseSearch = searchText.toLowerCase();
     const newFilteredRows = allRows.filter((row) =>
-      row.clientName.toLowerCase().includes(lowerCaseSearch)
+      row.nome.toLowerCase().includes(lowerCaseSearch)
     );
     setFilteredRows(newFilteredRows);
   };

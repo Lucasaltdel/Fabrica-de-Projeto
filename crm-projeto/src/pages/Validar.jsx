@@ -10,7 +10,10 @@ import {
   TextField,
   Typography,
   Divider,
+  Alert,
 } from "@mui/material";
+import getProposta from "../services/proposta";
+import api from "../services/api";
 
 const ValidarPage = () => {
   const [propostas, setPropostas] = useState([]);
@@ -19,8 +22,47 @@ const ValidarPage = () => {
   const [dialogAberto, setDialogAberto] = useState(false);
   const [motivoRejeicao, setMotivoRejeicao] = useState("");
   const [propostaRejeitada, setPropostaRejeitada] = useState(null);
+  const [erro, setErro] = useState(null);
 
-  // simulação de dados mockados
+  // Buscar propostas geradas que precisam de validação
+  useEffect(() => {
+    const buscarPropostasParaValidar = async () => {
+      setLoading(true);
+      setErro(null);
+      try {
+        const todasPropostas = await getProposta();
+        
+        // Filtrar apenas propostas que têm PDF gerado e estão aguardando validação
+        const propostasParaValidar = todasPropostas.filter(
+          (p) => p.pdfUrl && 
+          (p.statusValidacao === "Aguardando Validação" || 
+           p.statusValidacao === "Pendente") &&
+          p.statusValidacao !== "Finalizada" && 
+          p.statusValidacao !== "Rejeitada"
+        );
+
+        // Transformar para o formato esperado pela UI
+        const propostasFormatadas = propostasParaValidar.map((p) => ({
+          id: p.id,
+          clientName: p.nomeCliente,
+          email: p.emailCliente,
+          company: p.nomeCliente, // Usando nome como empresa por enquanto
+          pdfUrl: p.pdfUrl,
+          status: p.statusValidacao?.toLowerCase() || "pendente",
+          propostaOriginal: p,
+        }));
+
+        setPropostas(propostasFormatadas);
+      } catch (err) {
+        console.error("Erro ao buscar propostas:", err);
+        setErro("Erro ao carregar propostas. Tente novamente.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    buscarPropostasParaValidar();
+  }, []);
 
 
   const handleDownload = (pdfUrl, nomeCliente) => {
@@ -30,22 +72,62 @@ const ValidarPage = () => {
     link.click();
   };
 
-  const handleFinalizar = (id) => {
-    setPropostas((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, status: "finalizada" } : p))
-    );
+  const handleFinalizar = async (id) => {
+    const proposta = propostas.find((p) => p.id === id);
+    if (!proposta?.propostaOriginal) return;
+
+    try {
+      const propostaAtualizada = {
+        ...proposta.propostaOriginal,
+        statusValidacao: "Finalizada",
+      };
+
+      await api.put(`/api/Propostas/${id}`, propostaAtualizada);
+      
+      // Atualizar estado local
+      setPropostas((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, status: "finalizada" } : p))
+      );
+      
+      alert("Proposta finalizada com sucesso!");
+    } catch (err) {
+      console.error("Erro ao finalizar proposta:", err);
+      alert("Erro ao finalizar proposta. Tente novamente.");
+    }
   };
 
-  const handleRejeitar = () => {
-    setPropostas((prev) =>
-      prev.map((p) =>
-        p.id === propostaRejeitada
-          ? { ...p, status: "rejeitada", motivoRejeicao }
-          : p
-      )
-    );
-    setDialogAberto(false);
-    setMotivoRejeicao("");
+  const handleRejeitar = async () => {
+    if (!propostaRejeitada) return;
+    
+    const proposta = propostas.find((p) => p.id === propostaRejeitada);
+    if (!proposta?.propostaOriginal) return;
+
+    try {
+      const propostaAtualizada = {
+        ...proposta.propostaOriginal,
+        statusValidacao: "Rejeitada",
+        mensagemEquipe: motivoRejeicao,
+      };
+
+      await api.put(`/api/Propostas/${propostaRejeitada}`, propostaAtualizada);
+      
+      // Atualizar estado local
+      setPropostas((prev) =>
+        prev.map((p) =>
+          p.id === propostaRejeitada
+            ? { ...p, status: "rejeitada", motivoRejeicao }
+            : p
+        )
+      );
+      
+      setDialogAberto(false);
+      setMotivoRejeicao("");
+      setPropostaRejeitada(null);
+      alert("Proposta rejeitada com sucesso!");
+    } catch (err) {
+      console.error("Erro ao rejeitar proposta:", err);
+      alert("Erro ao rejeitar proposta. Tente novamente.");
+    }
   };
 
   if (loading) {
@@ -62,9 +144,15 @@ const ValidarPage = () => {
         Validação de Propostas
       </Typography>
 
-      {propostas.length === 0 ? (
+      {erro && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {erro}
+        </Alert>
+      )}
+
+      {propostas.length === 0 && !loading ? (
         <Typography textAlign="center" mt={5}>
-          Nenhuma proposta gerada até o momento.
+          Nenhuma proposta gerada aguardando validação.
         </Typography>
       ) : (
         <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
@@ -150,28 +238,29 @@ const ValidarPage = () => {
                       }
                     >
                       Baixar
-                    </Button>
-
-                    {prop.status === "pendente" && (
-                      <>
-                        <Button
-                          variant="contained"
-                          color="success"
-                          onClick={() => handleFinalizar(prop.id)}
-                        >
-                          Finalizar
-                        </Button>
-                        <Button
-                          variant="contained"
-                          color="error"
-                          onClick={() => {
-                            setPropostaRejeitada(prop.id);
-                            setDialogAberto(true);
-                          }}
-                        >
-                          Rejeitar
-                        </Button>
-                      </>
+                    </Button>                    
+                    
+                    {/* Botões de ação só aparecem se a proposta não estiver finalizada ou rejeitada */}
+                    {prop.status !== "finalizada" && prop.status !== "rejeitada" && (
+                    <>
+                      <Button
+                        variant="contained"
+                        color="success"
+                        onClick={() => handleFinalizar(prop.id)}
+                      >
+                        Finalizar
+                      </Button>
+                      <Button
+                        variant="contained"
+                        color="error"
+                        onClick={() => {
+                          setPropostaRejeitada(prop.id);
+                          setDialogAberto(true);
+                        }}
+                      >
+                        Rejeitar
+                      </Button>
+                    </>
                     )}
                   </Box>
                 </Box>

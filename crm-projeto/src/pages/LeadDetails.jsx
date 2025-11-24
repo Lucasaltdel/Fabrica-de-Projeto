@@ -16,8 +16,8 @@ const LeadDetails = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api
-      .get(`/leads/${id}`)
+    // MUDANÇA: Buscar da API real de Clientes
+    api.get(`/api/Clientes/${id}`)
       .then((response) => {
         setLead(response.data);
         setLoading(false);
@@ -71,7 +71,7 @@ const LeadDetails = () => {
         variant="h4"
         sx={{ color: "#512da8", fontWeight: 600, mb: 1 }}
       >
-        {lead.clientName}
+        {lead.nome}
       </Typography>
 
       {/* Barrinha amarela */}
@@ -81,7 +81,7 @@ const LeadDetails = () => {
 
       {/* Empresa */}
       <Typography variant="h6" sx={{ color: "#512da8" }}>
-        Empresa: {lead.company}
+        Empresa: {lead.nome} {/* Usando nome como empresa */}
       </Typography>
 
       {/* Mensagem principal (proposta) */}
@@ -116,7 +116,7 @@ const LeadDetails = () => {
       <Typography variant="h6" sx={{ color: "#512da8" }}>
         Solicitação:
       </Typography>
-      <Typography sx={{ mt: 1 }}>{lead.servico || "—"}</Typography>
+      <Typography sx={{ mt: 1 }}>{lead.status || "—"}</Typography>
 
       <Divider sx={{ my: 3 }} />
 

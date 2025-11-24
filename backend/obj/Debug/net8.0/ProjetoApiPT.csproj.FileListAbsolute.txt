@@ -192,8 +192,14 @@ C:\Users\User\Downloads\ProjetoApi\obj\Debug\net8.0\refint\ProjetoApiPT.dll
 C:\Users\User\Downloads\ProjetoApi\obj\Debug\net8.0\ProjetoApiPT.pdb
 C:\Users\User\Downloads\ProjetoApi\obj\Debug\net8.0\ProjetoApiPT.genruntimeconfig.cache
 C:\Users\User\Downloads\ProjetoApi\obj\Debug\net8.0\ref\ProjetoApiPT.dll
+C:\Users\Gio\Desktop\Front\backend\bin\Debug\net8.0\api-server\package.json
 C:\Users\Gio\Desktop\Front\backend\bin\Debug\net8.0\appsettings.Development.json
 C:\Users\Gio\Desktop\Front\backend\bin\Debug\net8.0\appsettings.json
+C:\Users\Gio\Desktop\Front\backend\bin\Debug\net8.0\tools\InspectDb\bin\Debug\net8.0\InspectDb.deps.json
+C:\Users\Gio\Desktop\Front\backend\bin\Debug\net8.0\tools\InspectDb\bin\Debug\net8.0\InspectDb.runtimeconfig.json
+C:\Users\Gio\Desktop\Front\backend\bin\Debug\net8.0\tools\InspectDb\obj\Debug\net8.0\InspectDb.sourcelink.json
+C:\Users\Gio\Desktop\Front\backend\bin\Debug\net8.0\tools\InspectDb\obj\InspectDb.csproj.nuget.dgspec.json
+C:\Users\Gio\Desktop\Front\backend\bin\Debug\net8.0\tools\InspectDb\obj\project.assets.json
 C:\Users\Gio\Desktop\Front\backend\bin\Debug\net8.0\ProjetoApiPT.staticwebassets.endpoints.json
 C:\Users\Gio\Desktop\Front\backend\bin\Debug\net8.0\ProjetoApiPT.exe
 C:\Users\Gio\Desktop\Front\backend\bin\Debug\net8.0\ProjetoApiPT.deps.json
@@ -391,9 +397,3 @@ C:\Users\Gio\Desktop\Front\backend\obj\Debug\net8.0\refint\ProjetoApiPT.dll
 C:\Users\Gio\Desktop\Front\backend\obj\Debug\net8.0\ProjetoApiPT.pdb
 C:\Users\Gio\Desktop\Front\backend\obj\Debug\net8.0\ProjetoApiPT.genruntimeconfig.cache
 C:\Users\Gio\Desktop\Front\backend\obj\Debug\net8.0\ref\ProjetoApiPT.dll
-C:\Users\Gio\Desktop\Front\backend\bin\Debug\net8.0\tools\InspectDb\bin\Debug\net8.0\InspectDb.deps.json
-C:\Users\Gio\Desktop\Front\backend\bin\Debug\net8.0\tools\InspectDb\bin\Debug\net8.0\InspectDb.runtimeconfig.json
-C:\Users\Gio\Desktop\Front\backend\bin\Debug\net8.0\tools\InspectDb\obj\Debug\net8.0\InspectDb.sourcelink.json
-C:\Users\Gio\Desktop\Front\backend\bin\Debug\net8.0\tools\InspectDb\obj\InspectDb.csproj.nuget.dgspec.json
-C:\Users\Gio\Desktop\Front\backend\bin\Debug\net8.0\tools\InspectDb\obj\project.assets.json
-C:\Users\Gio\Desktop\Front\backend\bin\Debug\net8.0\api-server\package.json

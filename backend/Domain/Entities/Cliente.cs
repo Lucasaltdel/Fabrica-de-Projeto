@@ -42,5 +42,10 @@ namespace ProjetoApiPT.Domain.Entities
         /// Data e hora do cadastro do Cliente. Define o valor padrão como a hora UTC atual.
         /// </summary>
         public DateTime DataCadastro { get; set; } = DateTime.UtcNow;
+        
+        /// <summary>
+        /// Propostas associadas a este cliente.
+        /// </summary>
+        public System.Collections.Generic.List<Proposta>? Propostas { get; set; }
     }
 }

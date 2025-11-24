@@ -43,6 +43,15 @@ namespace ProjetoApiPT.Infrastructure.Data
                 entity.Property(e => e.MensagemEquipe).HasMaxLength(1000);
                 entity.Property(e => e.Responsavel).HasMaxLength(255);
                 entity.Property(e => e.DataCriacao).HasDefaultValueSql("UTC_TIMESTAMP()"); 
+
+                entity.Property(e => e.Slides).HasColumnType("TEXT");
+                entity.Property(e => e.PdfUrl).HasMaxLength(1000).HasColumnType("TEXT");
+
+                // Relacionamento com Cliente
+                entity.HasOne<ProjetoApiPT.Domain.Entities.Cliente>()
+                      .WithMany(c => c.Propostas)
+                      .HasForeignKey("ClienteId")
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<Usuario>(entity =>

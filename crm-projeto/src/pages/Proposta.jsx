@@ -28,7 +28,7 @@ const PropostaPage = () => {
   useEffect(() => {
     const fetchLeads = async () => {
       try {
-        const res = await api.get('/leads');
+        const res = await api.get('/api/Clientes'); // <-- MUDANÇA: Usar a API real de Clientes
         setLeadsList(res.data || []);
       } catch (e) {
         console.warn('Não foi possível buscar lista de leads', e);
@@ -52,7 +52,7 @@ const PropostaPage = () => {
 
     try {
       // 1️⃣ Busca o lead completo (usa cliente centralizado)
-      const leadResponse = await api.get(`/leads/${leadId}`);
+      const leadResponse = await api.get(`/api/Clientes/${leadId}`); // <-- MUDANÇA: Usar a API real de Clientes
       const lead = leadResponse.data;
       setLeadData(lead);
 
@@ -84,27 +84,34 @@ const PropostaPage = () => {
     }
   };
 
-  const confirmarValidacao = () => {
-    setValidado(true);
-    alert("Proposta validada com sucesso!");
-  };
+  // Função refatorada para garantir que o cliente exista no backend antes de criar a proposta.
+  const mandarParaValidacao = async () => {
+    if (!leadId || !leadData) return alert('Selecione um lead e gere a proposta antes de enviar.');
+    if (!slides && !pdfUrl) return alert('Gere a proposta antes de enviar para validação.');
 
-  const salvarPropostaNoCliente = async () => {
-    if (!leadId) return alert('Selecione um lead antes de salvar.');
-    if (!slides && !pdfUrl) return alert('Gere a proposta antes de salvar.');
     try {
-      const payload = { slides, pdfUrl };
-      await api.post(`/leads/${leadId}/proposta`, payload);
-      alert('Proposta enviada para o backend e vinculada ao cliente.');
+      // Lógica simplificada: Como o leadId já é de um cliente real do banco de dados,
+      // não precisamos mais criar ou buscar o cliente. O ID já é o correto.
+      const clienteId = leadId;
+
+      const propostaPayload = { 
+        slides, 
+        pdfUrl, 
+        statusValidacao: "Aguardando Validação" 
+      };
+
+      // Criar a proposta usando o ID do cliente REAL do backend.
+      const responseProposta = await api.post(`/api/propostas-cliente/${clienteId}/criar`, propostaPayload);
+      
+      alert('Proposta enviada para validação com sucesso! Ela aparecerá na página de Validar.');
+
     } catch (e) {
-      console.error('Erro ao salvar proposta:', e);
-      if (e?.response?.status === 404) {
-        alert('Endpoint de salvar proposta não encontrado no backend. É necessário criar POST /leads/{id}/proposta.');
-      } else {
-        alert('Falha ao salvar proposta. Verifique o servidor.');
-      }
+      console.error('Erro completo ao enviar proposta para validação:', e);
+      const errorMessage = e?.response?.data?.message || e?.response?.data?.detail || e?.message || 'Erro desconhecido';
+      alert(`Falha ao enviar proposta para validação: ${errorMessage}`);
     }
   };
+
 
   const toDataURL = (blob) =>
     new Promise((resolve, reject) => {
@@ -131,14 +138,39 @@ const PropostaPage = () => {
           try {
             const res = await fetch(p);
             if (!res.ok) continue;
+            
+            // Verifica se é uma imagem válida
+            const contentType = res.headers.get('content-type');
+            if (!contentType || !contentType.startsWith('image/')) {
+              continue;
+            }
+            
             const blob = await res.blob();
-            logoDataUrl = await toDataURL(blob);
-            break;
-          } catch {
-            // ignore and try next
+            
+            // Verifica se o blob não está vazio e tem tamanho mínimo de PNG
+            if (blob.size < 8) {
+              continue;
+            }
+            
+            // Verifica se é PNG válido lendo os primeiros bytes
+            const arrayBuffer = await blob.slice(0, 8).arrayBuffer();
+            const bytes = new Uint8Array(arrayBuffer);
+            const pngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+            const isPng = bytes.every((byte, index) => byte === pngSignature[index]);
+            
+            if (isPng) {
+              logoDataUrl = await toDataURL(blob);
+              break;
+            }
+          } catch (err) {
+            // Ignora erros de carregamento de logo (não é crítico)
+            console.debug('Não foi possível carregar logo do caminho:', p, err);
+            continue;
           }
         }
-      } catch {
+      } catch (err) {
+        // Logo é opcional, não deve quebrar o fluxo
+        console.debug('Erro ao tentar carregar logo:', err);
         logoDataUrl = null;
       }
 
@@ -147,8 +179,8 @@ const PropostaPage = () => {
         try {
           doc.addImage(logoDataUrl, 'PNG', margin, 8, 30, 30);
         } catch (e) {
-          // falha ao adicionar logo não crítica
-          console.warn('Não foi possível adicionar logo no PDF', e);
+          // falha ao adicionar logo não crítica - continua sem logo
+          console.debug('Não foi possível adicionar logo no PDF (continuando sem logo)', e);
         }
       }
 
@@ -158,18 +190,18 @@ const PropostaPage = () => {
       doc.text(`Proposta Comercial`, titleX, 20);
       doc.setFontSize(11);
       doc.setTextColor('#374151');
-      doc.text(`Cliente: ${lead?.clientName || '-'}`, titleX, 26);
-      doc.text(`Empresa: ${lead?.company || '-'}`, titleX, 32);
+      doc.text(`Cliente: ${lead?.nome || '-'}`, titleX, 26);
+      doc.text(`Empresa: ${lead?.nome || '-'}`, titleX, 32); // Usando nome como empresa, ajuste se houver campo específico
       y = 42;
 
       // Linha separadora
       doc.setDrawColor(200);
       doc.setLineWidth(0.5);
-      doc.line(margin, y - 6, pageWidth - margin, y - 6);
+      doc.line(margin, y - 6, pageWidth - margin, y - 6); // Ajuste de y
 
       // Informação adicional
       doc.setFontSize(10);
-      doc.text(`Contato: ${lead?.email || '-'}    Telefone: ${lead?.phone || '-'}`, margin, y);
+      doc.text(`Contato: ${lead?.email || '-'}`, margin, y); // Removido telefone que não existe no modelo Cliente
       y += 8;
       if (lead?.data) {
         doc.text(`Data: ${lead.data}`, margin, y);
@@ -241,7 +273,7 @@ const PropostaPage = () => {
                 setLeadId(id);
                 if (id) {
                   try {
-                    const res = await api.get(`/leads/${id}`);
+                    const res = await api.get(`/api/Clientes/${id}`); // <-- MUDANÇA: Usar a API real de Clientes
                     setLeadData(res.data);
                   } catch (err) {
                     console.warn('Erro ao buscar lead selecionado', err);
@@ -254,7 +286,7 @@ const PropostaPage = () => {
             >
               <option value="">-- selecione --</option>
               {leadsList.map((l) => (
-                <option key={l.id} value={l.id}>{`${l.id} - ${l.clientName}`}</option>
+                <option key={l.id} value={l.id}>{`${l.id} - ${l.nome}`}</option> 
               ))}
             </select>
           </div>
@@ -347,20 +379,7 @@ const PropostaPage = () => {
                 }}
               >
                 <button
-                  onClick={confirmarValidacao}
-                  style={{
-                    padding: "10px 20px",
-                    backgroundColor: "#28a745",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                  }}
-                >
-                  Confirmar Validação
-                </button>
-                <button
-                  onClick={salvarPropostaNoCliente}
+                  onClick={mandarParaValidacao}
                   style={{
                     padding: "10px 20px",
                     backgroundColor: "#6f42c1",
@@ -368,9 +387,10 @@ const PropostaPage = () => {
                     border: "none",
                     borderRadius: "6px",
                     cursor: "pointer",
+                    fontWeight: "bold",
                   }}
                 >
-                  Salvar Proposta no Cliente
+                  Mandar para Validação
                 </button>
 
                 <button
@@ -452,17 +472,6 @@ const PropostaPage = () => {
                 </button>
               </div>
 
-              {validado && (
-                <p
-                  style={{
-                    color: "green",
-                    textAlign: "center",
-                    marginTop: "15px",
-                  }}
-                >
-                  ✅ Proposta validada com sucesso!
-                </p>
-              )}
             </div>
           )}
         </div>

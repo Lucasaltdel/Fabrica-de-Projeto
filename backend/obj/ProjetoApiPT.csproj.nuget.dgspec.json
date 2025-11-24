@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "c:\\Users\\Gio\\Desktop\\Front\\backend\\ProjetoApiPT.csproj": {}
+    "C:\\Users\\Gio\\Desktop\\Front\\backend\\ProjetoApiPT.csproj": {}
   },
   "projects": {
-    "c:\\Users\\Gio\\Desktop\\Front\\backend\\ProjetoApiPT.csproj": {
+    "C:\\Users\\Gio\\Desktop\\Front\\backend\\ProjetoApiPT.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "c:\\Users\\Gio\\Desktop\\Front\\backend\\ProjetoApiPT.csproj",
+        "projectUniqueName": "C:\\Users\\Gio\\Desktop\\Front\\backend\\ProjetoApiPT.csproj",
         "projectName": "ProjetoApiPT",
-        "projectPath": "c:\\Users\\Gio\\Desktop\\Front\\backend\\ProjetoApiPT.csproj",
+        "projectPath": "C:\\Users\\Gio\\Desktop\\Front\\backend\\ProjetoApiPT.csproj",
         "packagesPath": "C:\\Users\\Gio\\.nuget\\packages\\",
-        "outputPath": "c:\\Users\\Gio\\Desktop\\Front\\backend\\obj\\",
+        "outputPath": "C:\\Users\\Gio\\Desktop\\Front\\backend\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
